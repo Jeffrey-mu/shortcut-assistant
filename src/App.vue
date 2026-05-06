@@ -249,10 +249,10 @@ onMounted(async () => {
       <button
         v-if="appStore.isWorkMode"
         @click="appStore.toggleWorkMode"
-        class="absolute top-4 right-4 z-50 p-3 bg-white/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-full shadow-lg backdrop-blur transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
+        class="absolute top-2 right-2 z-50 p-2 bg-white/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-full shadow-lg backdrop-blur transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
         title="退出工作模式"
       >
-        <Minimize2 :size="20" />
+        <Minimize2 :size="16" />
       </button>
 
       <!-- 顶部状态栏 -->
@@ -339,7 +339,7 @@ onMounted(async () => {
       </div>
 
       <!-- 内容区 -->
-      <div class="flex-1 overflow-y-auto" :class="appStore.isWorkMode ? 'p-3' : 'p-6'">
+      <div class="flex-1 overflow-y-auto" :class="appStore.isWorkMode ? 'p-2 pt-10' : 'p-6'">
         <div v-if="filteredShortcuts.length === 0" class="h-full flex flex-col items-center justify-center text-slate-500 space-y-4">
           <div class="p-6 bg-white dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none transition-colors duration-300">
             <Plus :size="48" class="opacity-20 text-slate-400" />
@@ -359,7 +359,12 @@ onMounted(async () => {
               </h3>
               <div class="flex-1 h-px bg-slate-200 dark:bg-slate-800/50 transition-colors duration-300"></div>
             </div>
-            <div class="grid gap-4" :class="viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'">
+            <div class="grid gap-2 sm:gap-3" 
+                 :class="[
+                   viewMode === 'grid' && !appStore.isWorkMode ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
+                   viewMode === 'grid' && appStore.isWorkMode ? 'grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 xl:grid-cols-11 2xl:grid-cols-14 auto-rows-[48px]' : '',
+                   viewMode === 'list' ? 'grid-cols-1' : ''
+                 ]">
               <ShortcutCard 
                 v-for="shortcut in group" 
                 :key="shortcut.id"
@@ -380,8 +385,12 @@ onMounted(async () => {
         <div 
           v-else
           ref="shortcutListRef"
-          class="grid gap-4"
-          :class="viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
+          class="grid gap-2 sm:gap-3"
+          :class="[
+            viewMode === 'grid' && !appStore.isWorkMode ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
+            viewMode === 'grid' && appStore.isWorkMode ? 'grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 xl:grid-cols-11 2xl:grid-cols-14 auto-rows-[48px]' : '',
+            viewMode === 'list' ? 'grid-cols-1' : ''
+          ]"
         >
           <ShortcutCard 
             v-for="shortcut in filteredShortcuts" 

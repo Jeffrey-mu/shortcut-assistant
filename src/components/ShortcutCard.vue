@@ -52,25 +52,26 @@ onUnmounted(() => {
 
 <template>
   <div 
-    class="rounded-xl border overflow-hidden transition-all duration-300 group relative shadow-sm hover:shadow-md dark:shadow-lg flex flex-col h-full select-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+    class="rounded-xl border overflow-hidden transition-all duration-300 group relative shadow-sm flex flex-col h-full select-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
     :class="{ 
       'opacity-50 grayscale-[30%]': !shortcut.enabled && !batchMode,
       'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 scale-[1.02] z-10': selected,
-      'cursor-pointer hover:shadow-xl dark:hover:shadow-2xl hover:-translate-y-1 active:scale-[0.97] active:shadow-md': workMode,
+      'cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.96] active:shadow-sm': workMode,
       'cursor-grab active:cursor-grabbing hover:shadow-lg dark:hover:shadow-xl hover:-translate-y-0.5': !batchMode && !workMode,
       'cursor-pointer hover:border-blue-500': batchMode,
       'no-drag': workMode // 在工作模式下禁用拖拽
     }"
     :style="{ 
-      backgroundColor: `color-mix(in srgb, ${shortcut.color} 5%, transparent)`, 
+      backgroundColor: workMode ? (selected ? `color-mix(in srgb, ${shortcut.color} 10%, transparent)` : `color-mix(in srgb, ${shortcut.color} 3%, transparent)`) : `color-mix(in srgb, ${shortcut.color} 5%, transparent)`, 
       borderColor: selected ? shortcut.color : undefined,
       boxShadow: selected ? `0 8px 30px ${shortcut.color}30` : 'none'
     }"
     @click="batchMode ? $emit('select', shortcut.id) : (workMode ? $emit('trigger', shortcut) : null)"
   >
-    <!-- 背景渐变发光效果 -->
+    <!-- 背景渐变发光效果 (工作模式下弱化) -->
     <div 
-      class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[50px] opacity-10 dark:opacity-20 transition-opacity group-hover:opacity-20 dark:group-hover:opacity-40"
+      class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[50px] transition-opacity"
+      :class="workMode ? 'opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20' : 'opacity-10 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-40'"
       :style="{ backgroundColor: shortcut.color }"
     ></div>
     <!-- 复选框 (仅在批量模式显示) -->
@@ -86,33 +87,45 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- 顶部装饰色条 -->
+    <!-- 顶部装饰色条 (工作模式下变细) -->
     <div 
-      class="h-1 w-full opacity-80" 
+      class="w-full opacity-80 transition-all duration-300" 
+      :class="workMode ? 'h-0.5' : 'h-1'"
       :style="{ backgroundColor: shortcut.color }"
     ></div>
 
-    <div class="p-4 flex flex-col flex-1 relative z-10">
-      <div :class="[workMode ? 'mb-0 items-center' : 'mb-3 items-start', 'flex justify-between']">
-        <div class="flex-1 min-w-0 mr-2">
+    <div class="flex flex-col flex-1 relative z-10 transition-all duration-300" :class="workMode ? 'p-1' : 'p-4'">
+      <div :class="[workMode ? 'mb-0 flex-col items-center justify-center gap-0' : 'mb-3 items-start flex-row justify-between', 'flex h-full w-full']">
+        <div class="flex-1 min-w-0" :class="workMode ? 'flex flex-col items-center justify-center w-full h-full' : 'mr-2'">
           <h3 
-            class="font-bold truncate transition-all duration-300" 
-            :class="workMode ? 'text-xl' : 'text-lg'"
+            class="font-bold truncate transition-all duration-300 w-full" 
+            :class="workMode ? 'text-[11px] leading-tight text-center' : 'text-lg'"
             :style="{ color: shortcut.color }"
+            :title="workMode ? shortcut.name : ''"
           >
             {{ shortcut.name }}
           </h3>
-          <div class="flex items-center gap-2 mt-1.5">
-            <span class="px-2 py-0.5 text-xs font-mono rounded-md border backdrop-blur-md shadow-sm transition-all"
+          <div v-if="!workMode || shortcut.trigger.type !== 'instant'" class="flex items-center justify-center gap-1 w-full" :class="workMode ? 'mt-0' : 'mt-1.5'">
+            <span v-if="!workMode" class="px-1 py-0 text-[8px] font-mono rounded border backdrop-blur-md shadow-sm transition-all max-w-[80%] truncate"
+              :class="workMode ? 'opacity-60' : ''"
               :style="{ 
                 backgroundColor: `color-mix(in srgb, ${shortcut.color} 10%, transparent)`,
                 borderColor: `color-mix(in srgb, ${shortcut.color} 20%, transparent)`,
                 color: `color-mix(in srgb, ${shortcut.color} 80%, black)`
               }"
+              :title="shortcut.target.path"
             >
               {{ shortcut.target.path }}
             </span>
-            <span v-if="shortcut.trigger.type !== 'instant'" class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+            <div v-if="shortcut.trigger.type !== 'instant' && workMode" 
+                 class="flex items-center justify-center opacity-60 shrink-0"
+                 :style="{ color: `color-mix(in srgb, ${shortcut.color} 70%, black)` }"
+                 :title="shortcut.trigger.type === 'timing' ? '定时' : shortcut.trigger.type === 'delay' ? '延时' : '循环'">
+              <Clock v-if="shortcut.trigger.type === 'timing'" :size="8" />
+              <Timer v-if="shortcut.trigger.type === 'delay'" :size="8" />
+              <Repeat v-if="shortcut.trigger.type === 'interval'" :size="8" />
+            </div>
+            <span v-else-if="shortcut.trigger.type !== 'instant' && !workMode" class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs shrink-0">
               <Clock v-if="shortcut.trigger.type === 'timing'" :size="12" />
               <Timer v-if="shortcut.trigger.type === 'delay'" :size="12" />
               <Repeat v-if="shortcut.trigger.type === 'interval'" :size="12" />
