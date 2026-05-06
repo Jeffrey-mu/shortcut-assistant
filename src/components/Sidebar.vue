@@ -9,8 +9,11 @@ import {
   Settings, 
   Info 
 } from 'lucide-vue-next';
+import { useShortcutStore } from '../stores/shortcut';
 
 defineEmits(['add-shortcut', 'filter-change', 'import', 'export', 'settings', 'about']);
+
+const store = useShortcutStore();
 
 const filters = [
   { id: 'all', label: '全部', icon: List },
@@ -20,14 +23,9 @@ const filters = [
 </script>
 
 <template>
-  <aside class="w-64 bg-white dark:bg-slate-900 text-slate-800 dark:text-white flex flex-col h-screen border-r border-slate-200 dark:border-slate-700 transition-colors duration-300">
-    <div class="p-6">
-      <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent">
-        快捷键管理助手
-      </h1>
-    </div>
-
-    <div class="px-4 mb-6">
+  <aside data-tauri-drag-region class="w-64 text-slate-800 dark:text-white flex flex-col h-full border-r border-slate-200/50 dark:border-slate-700/50 transition-colors duration-300"
+         :class="store.settings.transparentWindow ? 'bg-white/40 dark:bg-slate-900/40 backdrop-blur-md' : 'bg-white dark:bg-slate-900'">
+    <div data-tauri-drag-region="false" class="px-4 mt-6 mb-6">
       <button 
         @click="$emit('add-shortcut')"
         class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium shadow-sm shadow-blue-500/20"
@@ -37,7 +35,7 @@ const filters = [
       </button>
     </div>
 
-    <nav class="flex-1 px-2 space-y-1">
+    <nav data-tauri-drag-region="false" class="flex-1 px-2 space-y-1">
       <button 
         v-for="filter in filters" 
         :key="filter.id"
@@ -49,7 +47,7 @@ const filters = [
       </button>
     </nav>
 
-    <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1 transition-colors duration-300">
+    <div data-tauri-drag-region="false" class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1 transition-colors duration-300">
       <button 
         @click="$emit('import')"
         class="w-full flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors text-sm"

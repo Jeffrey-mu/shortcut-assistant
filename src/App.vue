@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from "vue";
+import Titlebar from "./components/Titlebar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import ShortcutCard from "./components/ShortcutCard.vue";
 import AddShortcutModal from "./components/AddShortcutModal.vue";
@@ -8,7 +9,7 @@ import AboutModal from "./components/AboutModal.vue";
 import { useShortcutStore, type Shortcut } from "./stores/shortcut";
 import { useAppStore } from "./stores/app";
 import { ShortcutManager } from "./services/shortcutManager";
-import { Search, Grid, List as ListIcon, Plus, Pin, Maximize2, Minimize2, Palette } from "lucide-vue-next";
+import { Search, Grid, List as ListIcon, Plus, Pin, Maximize2, Minimize2, Palette, X } from "lucide-vue-next";
 import Sortable from "sortablejs";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeFile, readTextFile } from "@tauri-apps/plugin-fs";
@@ -234,8 +235,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-hidden font-sans transition-colors duration-300">
-    <Sidebar v-if="!appStore.isWorkMode"
+  <div class="flex flex-col h-screen text-slate-800 dark:text-slate-200 overflow-hidden font-sans transition-colors duration-300 rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50"
+       :class="store.settings.transparentWindow ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl' : 'bg-slate-50 dark:bg-slate-950'">
+    <Titlebar />
+    <div class="flex flex-1 overflow-hidden relative">
+      <Sidebar v-if="!appStore.isWorkMode"
       @add-shortcut="handleAddShortcut" 
       @filter-change="currentFilter = $event" 
       @import="handleImport"
@@ -256,8 +260,9 @@ onMounted(async () => {
       </button>
 
       <!-- 顶部状态栏 -->
-      <header v-if="!appStore.isWorkMode" class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm transition-colors duration-300">
-        <div class="flex items-center gap-4 flex-1 max-w-xl">
+      <header v-if="!appStore.isWorkMode" data-tauri-drag-region class="h-16 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between px-6 transition-colors duration-300"
+              :class="store.settings.transparentWindow ? 'bg-transparent' : 'bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm'">
+        <div data-tauri-drag-region="false" class="flex items-center gap-4 flex-1 max-w-xl">
           <div class="relative w-full">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" :size="18" />
             <input 
@@ -269,7 +274,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="flex items-center gap-3 ml-4">
+        <div data-tauri-drag-region="false" class="flex items-center gap-3 ml-4">
           <!-- 模式与置顶切换 -->
           <div class="flex items-center gap-1 mr-2 pr-4 border-r border-slate-200 dark:border-slate-700 transition-colors duration-300">
             <button 
@@ -425,6 +430,7 @@ onMounted(async () => {
       :show="showAbout" 
       @close="showAbout = false" 
     />
+    </div>
   </div>
 </template>
 

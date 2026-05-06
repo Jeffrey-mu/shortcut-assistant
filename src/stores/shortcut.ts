@@ -31,6 +31,7 @@ export interface AppSettings {
   autoStart: boolean;
   minimizeToTray: boolean;
   theme: 'light' | 'dark';
+  transparentWindow: boolean;
 }
 
 const CONFIG_FILE = 'config.json';
@@ -42,6 +43,7 @@ export const useShortcutStore = defineStore('shortcut', {
       autoStart: true,
       minimizeToTray: true,
       theme: 'dark',
+      transparentWindow: false,
     } as AppSettings,
     isLoaded: false,
   }),

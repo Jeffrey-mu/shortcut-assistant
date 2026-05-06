@@ -15,6 +15,7 @@ const localSettings = ref<AppSettings>({
   autoStart: true,
   minimizeToTray: true,
   theme: 'dark',
+  transparentWindow: false,
 });
 
 // 初始化数据
@@ -89,6 +90,20 @@ const handleSave = async () => {
               class="text-blue-600 dark:text-blue-500 transition-colors"
             >
               <ToggleRight v-if="localSettings.minimizeToTray" :size="32" />
+              <ToggleLeft v-else :size="32" class="text-slate-400 dark:text-slate-500" />
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+            <div>
+              <div class="text-slate-700 dark:text-slate-200 font-medium">开启窗口透明</div>
+              <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">允许窗口背景呈现半透明效果</div>
+            </div>
+            <button 
+              @click="localSettings.transparentWindow = !localSettings.transparentWindow"
+              class="text-blue-600 dark:text-blue-500 transition-colors"
+            >
+              <ToggleRight v-if="localSettings.transparentWindow" :size="32" />
               <ToggleLeft v-else :size="32" class="text-slate-400 dark:text-slate-500" />
             </button>
           </div>

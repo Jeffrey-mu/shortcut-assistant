@@ -23,6 +23,11 @@
     "fs:allow-app-write-recursive",
     "core:window:allow-set-always-on-top",
     "core:window:allow-hide",
-    "core:window:allow-show"
+    "core:window:allow-show",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-start-dragging"
   ]
 }
