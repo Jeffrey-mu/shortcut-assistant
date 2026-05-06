@@ -51,7 +51,7 @@ export class ShortcutManager {
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       if (timeStr === shortcut.trigger.timing) {
-        this.doExecute(shortcut, false);
+        this.doExecute(shortcut);
       }
     };
 
@@ -63,7 +63,7 @@ export class ShortcutManager {
     if (!shortcut.trigger.interval) return;
 
     const timer = setInterval(() => {
-      this.doExecute(shortcut, false);
+      this.doExecute(shortcut);
     }, shortcut.trigger.interval * 1000);
     this.timers.set(`interval-${shortcut.id}`, timer);
   }

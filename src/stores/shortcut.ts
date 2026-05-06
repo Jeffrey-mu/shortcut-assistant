@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import { writeTextFile, readTextFile, mkdir, exists } from '@tauri-apps/plugin-fs';
 import { appDataDir, join } from '@tauri-apps/api/path';
-import { ShortcutManager } from '../services/shortcutManager';
 
 export interface ShortcutTarget {
   type: 'keys'; // 仅保留转发按键类型

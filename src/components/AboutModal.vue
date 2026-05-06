@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X, Info, Github, ExternalLink } from 'lucide-vue-next';
+import { X, Info, ExternalLink } from 'lucide-vue-next';
 import { open } from '@tauri-apps/plugin-shell';
 
 defineProps<{

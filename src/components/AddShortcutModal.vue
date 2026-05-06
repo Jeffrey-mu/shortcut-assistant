@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { X, Keyboard, MousePointer2 } from 'lucide-vue-next';
-import type { Shortcut, ShortcutTarget, ShortcutTrigger } from '../stores/shortcut';
-import { ShortcutManager } from '../services/shortcutManager';
+import { ref, watch, onUnmounted } from 'vue';
+import { X, Keyboard } from 'lucide-vue-next';
+import type { Shortcut } from '../stores/shortcut';
 
 const props = defineProps<{
   show: boolean;
@@ -14,7 +13,7 @@ const emit = defineEmits(['close', 'save']);
 const name = ref('');
 const color = ref('#3B82F6');
 const targetPath = ref('');
-const triggerType = ref<ShortcutTrigger['type']>('instant');
+const triggerType = ref<'instant' | 'timing' | 'delay' | 'interval'>('instant');
 const delaySeconds = ref(3);
 const intervalSeconds = ref(5);
 const timingValue = ref('');
@@ -51,9 +50,6 @@ const manualModifiers = ref({
 });
 const manualKey = ref('');
 
-const recordedKeys = ref<string[]>([]);
-const shortcutManager = ShortcutManager.getInstance();
-
 const commonKeys = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -66,28 +62,19 @@ const colors = [
   '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'
 ];
 
-const stopRecording = () => {
-  isRecording.value = false;
-  // 移除所有可能的 keydown 监听
-  window.removeEventListener('keydown', _handleTargetKeyDownWrap);
-};
-
-const _handleKeyDownWrap = (e: KeyboardEvent) => handleKeyDown(e, false);
-const _handleTargetKeyDownWrap = (e: KeyboardEvent) => handleKeyDown(e, true);
-
 // 重新定义录制逻辑
 const startRecordingTarget = () => {
   isRecording.value = true;
   targetPath.value = '请按下目标按键...';
-  window.addEventListener('keydown', _handleTargetKeyDownWrap);
+  window.addEventListener('keydown', handleKeyDown);
 };
 
 const stopAllRecording = () => {
   isRecording.value = false;
-  window.removeEventListener('keydown', _handleTargetKeyDownWrap);
+  window.removeEventListener('keydown', handleKeyDown);
 };
 
-const handleKeyDown = (e: KeyboardEvent, isTargetKeys = false) => {
+const handleKeyDown = (e: KeyboardEvent) => {
   e.preventDefault();
   e.stopPropagation();
   

@@ -9,13 +9,11 @@ import {
   Repeat,
   MoreVertical,
   Check,
-  CircleCheck,
-  AlertTriangle,
-  XCircle
+  CircleCheck
 } from 'lucide-vue-next';
 import type { Shortcut } from '../stores/shortcut';
 
-const props = defineProps<{
+defineProps<{
   shortcut: Shortcut;
   selected?: boolean;
   batchMode?: boolean;
