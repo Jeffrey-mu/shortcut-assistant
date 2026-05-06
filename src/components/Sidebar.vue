@@ -20,9 +20,9 @@ const filters = [
 </script>
 
 <template>
-  <aside class="w-64 bg-slate-900 text-white flex flex-col h-screen border-r border-slate-700">
+  <aside class="w-64 bg-white dark:bg-slate-900 text-slate-800 dark:text-white flex flex-col h-screen border-r border-slate-200 dark:border-slate-700 transition-colors duration-300">
     <div class="p-6">
-      <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+      <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent">
         快捷键管理助手
       </h1>
     </div>
@@ -30,7 +30,7 @@ const filters = [
     <div class="px-4 mb-6">
       <button 
         @click="$emit('add-shortcut')"
-        class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+        class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium shadow-sm shadow-blue-500/20"
       >
         <Plus :size="18" />
         添加快捷键
@@ -42,38 +42,38 @@ const filters = [
         v-for="filter in filters" 
         :key="filter.id"
         @click="$emit('filter-change', filter.id)"
-        class="w-full flex items-center gap-3 px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-md transition-colors"
+        class="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors"
       >
         <component :is="filter.icon" :size="18" />
         {{ filter.label }}
       </button>
     </nav>
 
-    <div class="p-4 border-t border-slate-800 space-y-1">
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1 transition-colors duration-300">
       <button 
         @click="$emit('import')"
-        class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors text-sm"
+        class="w-full flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors text-sm"
       >
         <Upload :size="16" />
         导入配置
       </button>
       <button 
         @click="$emit('export')"
-        class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors text-sm"
+        class="w-full flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors text-sm"
       >
         <Download :size="16" />
         导出配置
       </button>
       <button 
         @click="$emit('settings')"
-        class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors text-sm"
+        class="w-full flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors text-sm"
       >
         <Settings :size="16" />
         系统设置
       </button>
       <button 
         @click="$emit('about')"
-        class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors text-sm"
+        class="w-full flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md transition-colors text-sm"
       >
         <Info :size="16" />
         关于软件

@@ -160,12 +160,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 transition-colors duration-300">
       <!-- 头部 -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-        <h2 class="text-xl font-bold text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
-        <button @click="$emit('close')" class="text-slate-400 hover:text-white transition-colors">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
+        <button @click="$emit('close')" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
           <X :size="20" />
         </button>
       </div>
@@ -175,12 +175,12 @@ onUnmounted(() => {
         <!-- 基本信息 -->
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">动作名称</label>
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">动作名称</label>
             <input 
               v-model="name"
               type="text" 
               placeholder="例如：微信截屏、播放掌声" 
-              class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
         </div>
@@ -188,10 +188,10 @@ onUnmounted(() => {
         <!-- 目标配置 -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <label class="block text-sm font-medium text-slate-400">转发按键内容</label>
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400">转发按键内容</label>
             <button 
               @click="toggleManualMode" 
-              class="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
               {{ isManualMode ? '切换到录制模式' : '无法录制？手动输入' }}
             </button>
@@ -202,23 +202,23 @@ onUnmounted(() => {
             <div v-if="!isManualMode" class="flex gap-2">
               <div 
                 @click="startRecordingTarget"
-                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white font-mono cursor-pointer hover:border-blue-500 transition-all flex items-center justify-between"
+                class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between"
                 :class="{ 'border-blue-500 ring-2 ring-blue-500/20': isRecording }"
               >
-                <span>{{ targetPath || '点击录制目标快捷键...' }}</span>
-                <Keyboard :size="18" class="text-slate-500" />
+                <span :class="{'text-slate-400 dark:text-slate-500': !targetPath || targetPath.includes('请按下')}">{{ targetPath || '点击录制目标快捷键...' }}</span>
+                <Keyboard :size="18" class="text-slate-400 dark:text-slate-500" />
               </div>
             </div>
 
             <!-- 手动输入模式 -->
-            <div v-else class="space-y-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div v-else class="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
               <div class="flex flex-wrap gap-2">
               <button 
                 v-for="(_, mod) in manualModifiers" 
                 :key="mod"
                 @click="manualModifiers[mod as keyof typeof manualModifiers] = !manualModifiers[mod as keyof typeof manualModifiers]; updateManualShortcut()"
                 class="px-3 py-1.5 rounded-md text-xs font-bold transition-all border"
-                :class="manualModifiers[mod as keyof typeof manualModifiers] ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                :class="manualModifiers[mod as keyof typeof manualModifiers] ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'"
               >
                 {{ mod }}
               </button>
@@ -227,7 +227,7 @@ onUnmounted(() => {
                 <select 
                   v-model="manualKey" 
                   @change="updateManualShortcut"
-                  class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
                 >
                   <option value="">选择按键...</option>
                   <option v-for="k in commonKeys" :key="k" :value="k">{{ k }}</option>
@@ -239,57 +239,72 @@ onUnmounted(() => {
 
         <!-- 触发方式 -->
         <div class="space-y-4">
-          <label class="block text-sm font-medium text-slate-400">触发方式</label>
+          <label class="block text-sm font-medium text-slate-600 dark:text-slate-400">触发方式</label>
           <div class="grid grid-cols-4 gap-2">
             <button 
               v-for="type in ['instant', 'delay', 'interval', 'timing']" 
               :key="type"
               @click="triggerType = type as any"
               class="px-2 py-2 rounded-lg border text-xs transition-all"
-              :class="triggerType === type ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'"
+              :class="triggerType === type ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
             >
               {{ type === 'instant' ? '立即' : type === 'delay' ? '延时' : type === 'interval' ? '循环' : '定时' }}
             </button>
           </div>
 
           <div v-if="triggerType === 'delay'" class="flex items-center gap-3">
-            <span class="text-sm text-slate-400">延时秒数</span>
-            <input v-model.number="delaySeconds" type="number" min="1" class="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white outline-none focus:border-blue-500" />
+            <span class="text-sm text-slate-600 dark:text-slate-400">延时秒数</span>
+            <input v-model.number="delaySeconds" type="number" min="1" class="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
             <span class="text-sm text-slate-500">秒</span>
           </div>
 
           <div v-if="triggerType === 'interval'" class="flex items-center gap-3">
-            <span class="text-sm text-slate-400">循环间隔</span>
-            <input v-model.number="intervalSeconds" type="number" min="1" class="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white outline-none focus:border-blue-500" />
+            <span class="text-sm text-slate-600 dark:text-slate-400">循环间隔</span>
+            <input v-model.number="intervalSeconds" type="number" min="1" class="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
             <span class="text-sm text-slate-500">秒</span>
           </div>
 
           <div v-if="triggerType === 'timing'" class="flex items-center gap-3">
-            <span class="text-sm text-slate-400">触发时间</span>
-            <input v-model="timingValue" type="time" class="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white outline-none focus:border-blue-500" />
+            <span class="text-sm text-slate-600 dark:text-slate-400">触发时间</span>
+            <input v-model="timingValue" type="time" class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
           </div>
         </div>
 
         <!-- 颜色选择 -->
         <div>
-          <label class="block text-sm font-medium text-slate-400 mb-2">卡片颜色</label>
-          <div class="flex flex-wrap gap-2">
+          <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">卡片颜色</label>
+          <div class="flex flex-wrap gap-2 items-center">
             <button 
               v-for="c in colors" 
               :key="c"
               @click="color = c"
               class="w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110"
-              :style="{ backgroundColor: c, borderColor: color === c ? 'white' : 'transparent' }"
+              :style="{ backgroundColor: c, borderColor: color === c ? 'currentColor' : 'transparent' }"
+              :class="color === c ? 'text-slate-900 dark:text-white' : ''"
+              title="选择预设颜色"
             ></button>
+            
+            <!-- 自定义颜色选择器 -->
+            <div class="relative w-8 h-8 rounded-full border-2 transition-all hover:scale-110 overflow-hidden flex items-center justify-center cursor-pointer"
+                 :class="!colors.includes(color) ? 'border-slate-900 dark:border-white' : 'border-slate-300 dark:border-slate-600 border-dashed'"
+                 :style="{ backgroundColor: !colors.includes(color) ? color : 'transparent' }"
+                 title="自定义颜色">
+              <input 
+                type="color" 
+                v-model="color"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <span v-if="colors.includes(color)" class="text-slate-400 text-lg leading-none mb-0.5">+</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- 底部 -->
-      <div class="px-6 py-4 bg-slate-800/50 border-t border-slate-800 flex justify-end gap-3">
+      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 transition-colors duration-300">
         <button 
           @click="$emit('close')"
-          class="px-4 py-2 text-slate-400 hover:text-white transition-colors text-sm font-medium"
+          class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"
         >
           取消
         </button>
