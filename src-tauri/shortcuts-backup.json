@@ -1,0 +1,24 @@
+{
+  "shortcuts": [
+    {
+      "name": "笑声",
+      "color": "#3B82F6",
+      "enabled": true,
+      "target": {
+        "type": "keys",
+        "path": "Alt+1"
+      },
+      "trigger": {
+        "type": "instant"
+      },
+      "id": "1cd15840-5f6a-4018-9c96-51674911be64",
+      "createTime": "2026-05-06T06:42:32.735Z",
+      "sort": 0
+    }
+  ],
+  "settings": {
+    "autoStart": true,
+    "minimizeToTray": true,
+    "theme": "dark"
+  }
+}
