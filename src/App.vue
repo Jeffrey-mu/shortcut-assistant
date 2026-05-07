@@ -9,7 +9,7 @@ import AboutModal from "./components/AboutModal.vue";
 import { useShortcutStore, type Shortcut } from "./stores/shortcut";
 import { useAppStore } from "./stores/app";
 import { ShortcutManager } from "./services/shortcutManager";
-import { Search, Grid, List as ListIcon, Plus, Pin, Maximize2, Minimize2, Palette, X } from "lucide-vue-next";
+import { Search, Grid, List as ListIcon, Plus, Pin, Maximize2, Minimize2, Palette } from "lucide-vue-next";
 import Sortable from "sortablejs";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeFile, readTextFile } from "@tauri-apps/plugin-fs";
