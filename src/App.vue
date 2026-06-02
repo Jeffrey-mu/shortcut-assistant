@@ -9,7 +9,7 @@ import AboutModal from "./components/AboutModal.vue";
 import { useShortcutStore, type Shortcut } from "./stores/shortcut";
 import { useAppStore } from "./stores/app";
 import { ShortcutManager } from "./services/shortcutManager";
-import { Search, Grid, List as ListIcon, Plus, Pin, Maximize2, Minimize2, Palette } from "lucide-vue-next";
+import { CheckCircle2, Grid, List as ListIcon, Loader2, Maximize2, Minimize2, Palette, Pin, Plus, Search, XCircle } from "lucide-vue-next";
 import Sortable from "sortablejs";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeFile, readTextFile } from "@tauri-apps/plugin-fs";
@@ -32,6 +32,14 @@ const showModal = ref(false);
 const showSettings = ref(false);
 const showAbout = ref(false);
 const editingShortcut = ref<Shortcut | undefined>(undefined);
+const triggerFeedback = ref<{
+  id: number;
+  status: "running" | "success" | "error";
+  name: string;
+  keys: string;
+  message: string;
+} | null>(null);
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
 const filteredShortcuts = computed(() => {
   return store.shortcuts.filter((s) => {
@@ -74,8 +82,53 @@ const handleSaveShortcut = async (data: any) => {
   showModal.value = false;
 };
 
-const handleTrigger = (shortcut: Shortcut) => {
-  shortcutManager.executeShortcut(shortcut);
+const showTriggerFeedback = (feedback: NonNullable<typeof triggerFeedback.value>, duration = 1800) => {
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+  }
+  triggerFeedback.value = feedback;
+  if (feedback.status !== "running") {
+    feedbackTimer = setTimeout(() => {
+      if (triggerFeedback.value?.id === feedback.id) {
+        triggerFeedback.value = null;
+      }
+    }, duration);
+  }
+};
+
+const handleTrigger = async (shortcut: Shortcut) => {
+  const feedbackId = Date.now();
+  showTriggerFeedback({
+    id: feedbackId,
+    status: "running",
+    name: shortcut.name,
+    keys: shortcut.target.path,
+    message: shortcut.trigger.type === "delay" && shortcut.trigger.delay
+      ? `等待 ${shortcut.trigger.delay} 秒后发送`
+      : "正在发送按键",
+  });
+
+  try {
+    await shortcutManager.executeShortcut(shortcut);
+    if (triggerFeedback.value?.id !== feedbackId) return;
+    showTriggerFeedback({
+      id: feedbackId,
+      status: "success",
+      name: shortcut.name,
+      keys: shortcut.target.path,
+      message: "已发送配置按键",
+    });
+  } catch (error) {
+    if (triggerFeedback.value?.id !== feedbackId) return;
+    showTriggerFeedback({
+      id: feedbackId,
+      status: "error",
+      name: shortcut.name,
+      keys: shortcut.target.path,
+      message: error instanceof Error ? error.message : String(error),
+    }, 2600);
+  }
 };
 
 const handleDelete = (id: string) => {
@@ -249,6 +302,32 @@ onMounted(async () => {
     />
 
     <main class="flex-1 flex flex-col min-w-0 relative">
+      <div
+        v-if="triggerFeedback"
+        class="absolute top-4 right-4 z-[70] max-w-[min(360px,calc(100%-2rem))] rounded-lg border px-4 py-3 shadow-xl backdrop-blur-xl transition-all"
+        :class="[
+          triggerFeedback.status === 'success' ? 'bg-emerald-50/95 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-100' : '',
+          triggerFeedback.status === 'running' ? 'bg-blue-50/95 dark:bg-blue-950/80 border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-100' : '',
+          triggerFeedback.status === 'error' ? 'bg-red-50/95 dark:bg-red-950/80 border-red-200 dark:border-red-500/30 text-red-800 dark:text-red-100' : ''
+        ]"
+      >
+        <div class="flex items-start gap-3">
+          <Loader2 v-if="triggerFeedback.status === 'running'" :size="18" class="mt-0.5 shrink-0 animate-spin" />
+          <CheckCircle2 v-else-if="triggerFeedback.status === 'success'" :size="18" class="mt-0.5 shrink-0" />
+          <XCircle v-else :size="18" class="mt-0.5 shrink-0" />
+          <div class="min-w-0">
+            <div class="text-sm font-semibold truncate">{{ triggerFeedback.message }}</div>
+            <div class="mt-1 flex items-center gap-2 text-xs opacity-80 min-w-0">
+              <span class="truncate">{{ triggerFeedback.name }}</span>
+              <span class="font-mono rounded border px-1.5 py-0.5 shrink-0"
+                    :class="triggerFeedback.status === 'error' ? 'border-red-300/60 dark:border-red-400/30' : 'border-current/20'">
+                {{ triggerFeedback.keys }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 退出工作模式悬浮按钮 -->
       <button
         v-if="appStore.isWorkMode"

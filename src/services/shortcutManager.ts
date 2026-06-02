@@ -71,24 +71,25 @@ export class ShortcutManager {
   /**
    * 执行快捷键操作 (通常由手动点击触发)
    */
-  public executeShortcut(shortcut: Shortcut) {
-    if (!shortcut.enabled) return;
+  public async executeShortcut(shortcut: Shortcut): Promise<void> {
+    if (!shortcut.enabled) {
+      throw new Error('动作已禁用');
+    }
     
     console.log(`手动触发动作: ${shortcut.name}, 模式: ${shortcut.trigger.type}`);
     
     if (shortcut.trigger.type === 'delay' && shortcut.trigger.delay) {
-      setTimeout(() => {
-        this.doExecute(shortcut);
-      }, shortcut.trigger.delay * 1000);
+      await new Promise(resolve => setTimeout(resolve, shortcut.trigger.delay! * 1000));
+      await this.doExecute(shortcut);
     } else {
-      this.doExecute(shortcut);
+      await this.doExecute(shortcut);
     }
   }
 
   /**
    * 实际执行按键转发逻辑
    */
-  private doExecute(shortcut: Shortcut) {
+  private doExecute(shortcut: Shortcut): Promise<void> {
     console.log(`正在执行动作: ${shortcut.name}`);
     if (shortcut.target.type === 'keys') {
       const keys = shortcut.target.path;
@@ -96,16 +97,15 @@ export class ShortcutManager {
         .then(() => this.simulateKeys(keys))
         .catch((err) => {
           console.error('队列执行出现异常:', err);
+          throw err;
         });
+      return this.keySendQueue;
     }
+    return Promise.resolve();
   }
 
   private async simulateKeys(keys: string) {
     console.log(`模拟按键: ${keys}`);
-    try {
-      await invoke('simulate_keys', { keys });
-    } catch (error) {
-      console.error('模拟按键失败:', error);
-    }
+    await invoke('simulate_keys', { keys });
   }
 }
