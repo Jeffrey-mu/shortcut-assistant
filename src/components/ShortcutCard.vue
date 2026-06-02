@@ -13,6 +13,7 @@ import {
 } from 'lucide-vue-next';
 import type { Shortcut } from '../stores/shortcut';
 import { useShortcutStore } from '../stores/shortcut';
+import { getShortcutIcon } from '../data/iconOptions';
 
 defineProps<{
   shortcut: Shortcut;
@@ -102,14 +103,25 @@ onUnmounted(() => {
     <div class="flex flex-col flex-1 relative z-10 transition-all duration-300" :class="workMode ? 'p-1' : 'p-4'">
       <div :class="[workMode ? 'mb-0 flex-col items-center justify-center gap-0' : 'mb-3 items-start flex-row justify-between', 'flex h-full w-full']">
         <div class="flex-1 min-w-0" :class="workMode ? 'flex flex-col items-center justify-center w-full h-full' : 'mr-2'">
-          <h3 
-            class="font-bold truncate transition-all duration-300 w-full" 
-            :class="workMode ? 'text-[11px] leading-tight text-center' : 'text-lg'"
-            :style="{ color: shortcut.color }"
-            :title="workMode ? shortcut.name : ''"
+          <div 
+            class="flex min-w-0 transition-all duration-300"
+            :class="workMode ? 'flex-col items-center justify-center gap-0.5 w-full' : 'items-center gap-2 w-full'"
           >
-            {{ shortcut.name }}
-          </h3>
+            <component 
+              :is="getShortcutIcon(shortcut.icon)" 
+              class="shrink-0"
+              :class="workMode ? 'w-4 h-4' : 'w-5 h-5'"
+              :style="{ color: shortcut.color }"
+            />
+            <h3 
+              class="font-bold truncate transition-all duration-300 min-w-0" 
+              :class="workMode ? 'text-[11px] leading-tight text-center w-full' : 'text-lg flex-1'"
+              :style="{ color: shortcut.color }"
+              :title="workMode ? shortcut.name : ''"
+            >
+              {{ shortcut.name }}
+            </h3>
+          </div>
           <div v-if="!workMode || shortcut.trigger.type !== 'instant'" class="flex items-center justify-center gap-1 w-full" :class="workMode ? 'mt-0' : 'mt-1.5'">
             <span v-if="!workMode" class="px-1 py-0 text-[8px] font-mono rounded border backdrop-blur-md shadow-sm transition-all max-w-[80%] truncate"
               :class="workMode ? 'opacity-60' : ''"

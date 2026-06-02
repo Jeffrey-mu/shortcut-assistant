@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { X, Keyboard } from 'lucide-vue-next';
 import type { Shortcut } from '../stores/shortcut';
+import { DEFAULT_SHORTCUT_ICON, getShortcutIcon, iconOptions } from '../data/iconOptions';
 
 const props = defineProps<{
   show: boolean;
@@ -11,24 +12,36 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'save']);
 
 const name = ref('');
+const icon = ref(DEFAULT_SHORTCUT_ICON);
+const iconSearch = ref('');
 const color = ref('#3B82F6');
 const targetPath = ref('');
 const triggerType = ref<'instant' | 'timing' | 'delay' | 'interval'>('instant');
 const delaySeconds = ref(3);
 const intervalSeconds = ref(5);
 const timingValue = ref('');
+const isRecording = ref(false);
+const isManualMode = ref(false); // 新增：是否为手动输入模式
+const recordingMode = ref<'combo' | 'separate'>('combo');
+const separateKeys = ref<string[]>([]);
 
 const resetForm = () => {
   name.value = '';
+  icon.value = DEFAULT_SHORTCUT_ICON;
+  iconSearch.value = '';
   color.value = '#3B82F6';
   targetPath.value = '';
   triggerType.value = 'instant';
+  separateKeys.value = [];
+  recordingMode.value = 'combo';
 };
 
 // 监听 editShortcut 变化，实现数据回显
 watch(() => props.editShortcut, (newVal) => {
   if (newVal) {
     name.value = newVal.name;
+    icon.value = newVal.icon || DEFAULT_SHORTCUT_ICON;
+    iconSearch.value = '';
     color.value = newVal.color;
     targetPath.value = newVal.target.path;
     triggerType.value = newVal.trigger.type;
@@ -40,8 +53,6 @@ watch(() => props.editShortcut, (newVal) => {
   }
 }, { immediate: true });
 
-const isRecording = ref(false);
-const isManualMode = ref(false); // 新增：是否为手动输入模式
 const manualModifiers = ref({
   Ctrl: false,
   Alt: false,
@@ -62,16 +73,45 @@ const colors = [
   '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'
 ];
 
+const filteredIconOptions = computed(() => {
+  const query = iconSearch.value.trim().toLowerCase();
+  if (!query) return iconOptions;
+  return iconOptions.filter((option) => {
+    return option.label.toLowerCase().includes(query)
+      || option.name.toLowerCase().includes(query)
+      || option.keywords.toLowerCase().includes(query);
+  });
+});
+
 // 重新定义录制逻辑
 const startRecordingTarget = () => {
   isRecording.value = true;
-  targetPath.value = '请按下目标按键...';
+  if (recordingMode.value === 'separate') {
+    separateKeys.value = [];
+  }
+  targetPath.value = recordingMode.value === 'separate' ? '请分开按下组合键...' : '请按下目标按键...';
   window.addEventListener('keydown', handleKeyDown);
 };
 
 const stopAllRecording = () => {
   isRecording.value = false;
   window.removeEventListener('keydown', handleKeyDown);
+};
+
+const finishSeparateRecording = () => {
+  if (separateKeys.value.length > 0) {
+    targetPath.value = separateKeys.value.join('+');
+  }
+  stopAllRecording();
+};
+
+const switchRecordingMode = (mode: 'combo' | 'separate') => {
+  recordingMode.value = mode;
+  separateKeys.value = [];
+  stopAllRecording();
+  if (targetPath.value.includes('请按下') || targetPath.value.includes('请分开按下')) {
+    targetPath.value = '';
+  }
 };
 
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,22 +125,39 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (e.metaKey) keys.push('Command');
 
   const key = e.key;
+  const displayKey = normalizeDisplayKey(key);
+
+  if (recordingMode.value === 'separate') {
+    if (!separateKeys.value.includes(displayKey)) {
+      separateKeys.value.push(displayKey);
+    }
+    targetPath.value = separateKeys.value.join('+');
+    return;
+  }
+
   if (!['Control', 'Alt', 'Shift', 'Meta'].includes(key)) {
-    let displayKey = key.toUpperCase();
-    if (key === ' ') displayKey = 'Space';
-    if (key === 'ArrowUp') displayKey = 'Up';
-    if (key === 'ArrowDown') displayKey = 'Down';
-    if (key === 'ArrowLeft') displayKey = 'Left';
-    if (key === 'ArrowRight') displayKey = 'Right';
-    
     keys.push(displayKey);
     const result = keys.join('+');
-    targetPath.value = result;
-    stopAllRecording();
+      targetPath.value = result;
+      stopAllRecording();
   } else {
     const result = keys.join('+') + '+...';
     targetPath.value = result;
   }
+};
+
+const normalizeDisplayKey = (key: string) => {
+  if (key === 'Control') return 'Ctrl';
+  if (key === 'Alt') return 'Alt';
+  if (key === 'Shift') return 'Shift';
+  if (key === 'Meta') return 'Command';
+  if (key === ' ') return 'Space';
+  if (key === 'ArrowUp') return 'Up';
+  if (key === 'ArrowDown') return 'Down';
+  if (key === 'ArrowLeft') return 'Left';
+  if (key === 'ArrowRight') return 'Right';
+  if (key === 'Escape') return 'Esc';
+  return key.length === 1 ? key.toUpperCase() : key;
 };
 
 const toggleManualMode = () => {
@@ -137,10 +194,12 @@ const updateManualShortcut = () => {
 };
 
 const handleSave = () => {
-  if (!name.value || !targetPath.value || targetPath.value.includes('...')) return;
+  if (!name.value || isTargetInvalid.value) return;
+  stopAllRecording();
   
   emit('save', {
     name: name.value,
+    icon: icon.value,
     color: color.value,
     enabled: true,
     target: { type: 'keys', path: targetPath.value },
@@ -153,6 +212,16 @@ const handleSave = () => {
   });
   resetForm();
 };
+
+const isTargetInvalid = computed(() => {
+  return !targetPath.value
+    || targetPath.value.includes('...')
+    || targetPath.value.includes('请按下')
+    || targetPath.value.includes('请分开按下')
+    || !targetPath.value.split('+').some((part) => !isModifierKey(part));
+});
+
+const isModifierKey = (key: string) => ['Ctrl', 'Control', 'Alt', 'Option', 'Shift', 'Command', 'Cmd', 'Meta', 'Win'].includes(key.trim());
 
 onUnmounted(() => {
   stopAllRecording();
@@ -183,6 +252,35 @@ onUnmounted(() => {
               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">动作图标</label>
+            <div class="flex items-center gap-3 mb-3">
+              <div 
+                class="w-11 h-11 rounded-lg border flex items-center justify-center shrink-0"
+                :style="{ color, borderColor: `color-mix(in srgb, ${color} 35%, transparent)`, backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)` }"
+              >
+                <component :is="getShortcutIcon(icon)" class="w-6 h-6" />
+              </div>
+              <input
+                v-model="iconSearch"
+                type="text"
+                placeholder="搜索图标..."
+                class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div class="grid grid-cols-8 gap-2 max-h-36 overflow-y-auto pr-1">
+              <button
+                v-for="option in filteredIconOptions"
+                :key="option.name"
+                @click="icon = option.name"
+                class="aspect-square rounded-lg border flex items-center justify-center transition-all hover:scale-105"
+                :class="icon === option.name ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-500'"
+                :title="option.label"
+              >
+                <component :is="option.component" class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- 目标配置 -->
@@ -199,14 +297,40 @@ onUnmounted(() => {
           
           <div>
             <!-- 录制模式 -->
-            <div v-if="!isManualMode" class="flex gap-2">
-              <div 
-                @click="startRecordingTarget"
-                class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between"
-                :class="{ 'border-blue-500 ring-2 ring-blue-500/20': isRecording }"
-              >
-                <span :class="{'text-slate-400 dark:text-slate-500': !targetPath || targetPath.includes('请按下')}">{{ targetPath || '点击录制目标快捷键...' }}</span>
-                <Keyboard :size="18" class="text-slate-400 dark:text-slate-500" />
+            <div v-if="!isManualMode" class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  @click="switchRecordingMode('combo')"
+                  class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
+                  :class="recordingMode === 'combo' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
+                >
+                  组合录入
+                </button>
+                <button
+                  @click="switchRecordingMode('separate')"
+                  class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
+                  :class="recordingMode === 'separate' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
+                >
+                  分开录入
+                </button>
+              </div>
+              <div class="flex gap-2">
+                <div 
+                  @click="startRecordingTarget"
+                  class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between min-w-0"
+                  :class="{ 'border-blue-500 ring-2 ring-blue-500/20': isRecording }"
+                >
+                  <span class="truncate" :class="{'text-slate-400 dark:text-slate-500': isTargetInvalid}">{{ targetPath || (recordingMode === 'separate' ? '点击后分开按键...' : '点击录制目标快捷键...') }}</span>
+                  <Keyboard :size="18" class="text-slate-400 dark:text-slate-500 shrink-0" />
+                </div>
+                <button
+                  v-if="recordingMode === 'separate' && isRecording"
+                  @click="finishSeparateRecording"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:pointer-events-none"
+                  :disabled="separateKeys.length === 0"
+                >
+                  完成
+                </button>
               </div>
             </div>
 
@@ -311,7 +435,7 @@ onUnmounted(() => {
         <button 
           @click="handleSave"
           class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-          :disabled="!name || !targetPath || targetPath.includes('...')"
+          :disabled="!name || isTargetInvalid"
         >
           保存配置
         </button>

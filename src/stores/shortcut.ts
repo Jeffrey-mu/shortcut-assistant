@@ -19,6 +19,7 @@ export interface ShortcutTrigger {
 export interface Shortcut {
   id: string;
   name: string;
+  icon?: string;
   color: string;
   enabled: boolean;
   target: ShortcutTarget;
