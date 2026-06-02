@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from 'vue';
-import { X, Keyboard } from 'lucide-vue-next';
+import { X, Keyboard, Type, Clock, Palette } from 'lucide-vue-next';
 import type { Shortcut } from '../stores/shortcut';
 import { DEFAULT_SHORTCUT_ICON, getShortcutIcon, iconOptions } from '../data/iconOptions';
 
@@ -24,6 +24,14 @@ const isRecording = ref(false);
 const isManualMode = ref(false); // 新增：是否为手动输入模式
 const recordingMode = ref<'combo' | 'separate'>('combo');
 const separateKeys = ref<string[]>([]);
+const activeTab = ref<'basic' | 'keys' | 'trigger' | 'style'>('basic');
+
+const tabs = [
+  { id: 'basic', label: '基础', icon: Type },
+  { id: 'keys', label: '按键', icon: Keyboard },
+  { id: 'trigger', label: '触发', icon: Clock },
+  { id: 'style', label: '样式', icon: Palette },
+] as const;
 
 const resetForm = () => {
   name.value = '';
@@ -38,6 +46,7 @@ const resetForm = () => {
 
 // 监听 editShortcut 变化，实现数据回显
 watch(() => props.editShortcut, (newVal) => {
+  activeTab.value = 'basic';
   if (newVal) {
     name.value = newVal.name;
     icon.value = newVal.icon || DEFAULT_SHORTCUT_ICON;
@@ -52,6 +61,14 @@ watch(() => props.editShortcut, (newVal) => {
     resetForm();
   }
 }, { immediate: true });
+
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    activeTab.value = 'basic';
+  } else {
+    stopAllRecording();
+  }
+});
 
 const manualModifiers = ref({
   Ctrl: false,
@@ -230,19 +247,35 @@ onUnmounted(() => {
 
 <template>
   <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 transition-colors duration-300">
+    <div class="flex max-h-[min(88vh,760px)] w-[min(94vw,560px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in duration-200 transition-colors duration-300 dark:border-slate-700 dark:bg-slate-900">
       <!-- 头部 -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-        <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
-        <button @click="$emit('close')" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-          <X :size="20" />
-        </button>
+      <div class="shrink-0 border-b border-slate-200 bg-slate-50 px-5 py-4 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/50">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-bold text-slate-800 dark:text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
+          <button @click="$emit('close')" class="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
+            <X :size="20" />
+          </button>
+        </div>
+        <div class="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-950/60">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            class="flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all"
+            :style="activeTab === tab.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+            :class="activeTab === tab.id ? 'shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
+            :title="tab.label"
+          >
+            <component :is="tab.icon" :size="15" class="shrink-0" />
+            <span class="truncate">{{ tab.label }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- 内容 -->
-      <div class="p-6 space-y-6">
+      <div class="min-h-0 flex-1 overflow-y-auto p-5">
         <!-- 基本信息 -->
-        <div class="space-y-4">
+        <div v-if="activeTab === 'basic'" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">动作名称</label>
             <input 
@@ -284,7 +317,7 @@ onUnmounted(() => {
         </div>
 
         <!-- 目标配置 -->
-        <div class="space-y-4">
+        <div v-else-if="activeTab === 'keys'" class="space-y-4">
           <div class="flex items-center justify-between">
             <label class="block text-sm font-medium text-slate-600 dark:text-slate-400">转发按键内容</label>
             <button 
@@ -362,7 +395,7 @@ onUnmounted(() => {
         </div>
 
         <!-- 触发方式 -->
-        <div class="space-y-4">
+        <div v-else-if="activeTab === 'trigger'" class="space-y-4">
           <label class="block text-sm font-medium text-slate-600 dark:text-slate-400">触发方式</label>
           <div class="grid grid-cols-4 gap-2">
             <button 
@@ -395,7 +428,7 @@ onUnmounted(() => {
         </div>
 
         <!-- 颜色选择 -->
-        <div>
+        <div v-else>
           <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">卡片颜色</label>
           <div class="flex flex-wrap gap-2 items-center">
             <button 
@@ -425,7 +458,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 底部 -->
-      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 transition-colors duration-300">
+      <div class="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-slate-800 dark:bg-slate-800/50 dark:shadow-[0_-12px_28px_rgba(0,0,0,0.18)]">
         <button 
           @click="$emit('close')"
           class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"

@@ -268,7 +268,12 @@ pub fn run() {
             {
                 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
                 use tauri::menu::{Menu, MenuItem};
+                use tauri::window::Color;
                 use tauri::Manager;
+
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
+                }
 
                 let show_i = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
                 let quit_i = MenuItem::with_id(app, "quit", "退出应用", true, None::<&str>)?;

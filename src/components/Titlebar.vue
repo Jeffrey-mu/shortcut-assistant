@@ -1,42 +1,120 @@
 <script setup lang="ts">
-import { Minus, Square, X } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { Minus, Minimize2, Square, X } from 'lucide-vue-next';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useAppStore } from '../stores/app';
+import { isTauriRuntime } from '../utils/browserGuards';
 
-const appWindow = getCurrentWindow();
 const appStore = useAppStore();
+const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+const isMaximized = ref(false);
+let unlistenResize: (() => void) | null = null;
+
+const syncMaximizedState = async () => {
+  if (!isTauriRuntime()) return;
+  try {
+    isMaximized.value = await getCurrentWindow().isMaximized();
+  } catch (error) {
+    console.error('Failed to sync maximize state:', error);
+  }
+};
 
 const handleMinimize = async () => {
-  await appWindow.minimize();
+  if (!isTauriRuntime()) return;
+  await getCurrentWindow().minimize();
 };
 
 const handleMaximize = async () => {
-  await appWindow.toggleMaximize();
+  if (!isTauriRuntime()) {
+    isMaximized.value = !isMaximized.value;
+    return;
+  }
+  const appWindow = getCurrentWindow();
+  if (await appWindow.isMaximized()) {
+    await appWindow.unmaximize();
+  } else {
+    await appWindow.maximize();
+  }
+  await syncMaximizedState();
 };
 
 const handleClose = async () => {
-  await appWindow.close();
+  if (!isTauriRuntime()) return;
+  await getCurrentWindow().close();
 };
+
+onMounted(async () => {
+  await syncMaximizedState();
+  if (!isTauriRuntime()) return;
+  try {
+    unlistenResize = await getCurrentWindow().onResized(syncMaximizedState);
+  } catch (error) {
+    console.error('Failed to listen window resize:', error);
+  }
+});
+
+onUnmounted(() => {
+  unlistenResize?.();
+  unlistenResize = null;
+});
 </script>
 
 <template>
-  <div data-tauri-drag-region @dblclick="handleMaximize" class="h-10 flex items-center justify-between px-4 select-none shrink-0 transition-colors duration-300 z-50 border-b border-slate-200/50 dark:border-slate-800/50 cursor-default"
-       :class="appStore.isWorkMode ? 'bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-md' : 'bg-transparent'">
+  <div data-tauri-drag-region @dblclick="handleMaximize" class="flex items-center justify-between select-none shrink-0 transition-colors duration-300 z-50 cursor-default backdrop-blur-xl"
+       :style="{ backgroundColor: 'var(--window-surface, transparent)' }"
+       :class="[
+         appStore.isWorkMode ? 'h-8 bg-transparent border-b border-white/5' : 'h-10 bg-transparent border-b border-slate-200/50 dark:border-slate-800/50',
+         isMac ? 'px-3' : 'px-4'
+       ]">
     
-    <!-- 左侧标题 -->
-    <div data-tauri-drag-region class="flex items-center gap-2 h-full flex-1 pointer-events-none">
-      <span class="text-xs font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent">
+    <!-- macOS 窗口控制 -->
+    <div v-if="isMac" data-tauri-drag-region="false" class="group/window-controls flex w-24 items-center gap-2">
+      <button
+        @click.stop="handleClose"
+        class="mac-traffic-light bg-[#ff5f57]"
+        title="关闭"
+      >
+        <X :size="8" class="opacity-0 transition-opacity group-hover/window-controls:opacity-70" />
+      </button>
+      <button
+        @click.stop="handleMinimize"
+        class="mac-traffic-light bg-[#ffbd2e]"
+        title="最小化"
+      >
+        <Minus :size="8" class="opacity-0 transition-opacity group-hover/window-controls:opacity-70" />
+      </button>
+      <button
+        @click.stop="handleMaximize"
+        class="mac-traffic-light bg-[#28c840]"
+        :title="isMaximized ? '还原' : '全屏'"
+      >
+        <span class="h-1.5 w-1.5 rounded-[1px] border border-current opacity-0 transition-opacity group-hover/window-controls:opacity-60"></span>
+      </button>
+    </div>
+
+    <!-- 标题 -->
+    <div data-tauri-drag-region class="flex h-full flex-1 items-center gap-2 pointer-events-none"
+         :class="isMac ? 'justify-center' : 'justify-start'">
+      <span class="text-xs font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent"
+            :class="appStore.isWorkMode ? 'opacity-70' : ''">
         快捷键管理助手
       </span>
     </div>
 
-    <!-- 右侧窗口控制 -->
-    <div data-tauri-drag-region="false" class="flex items-center gap-2">
+    <div v-if="isMac" class="w-24"></div>
+
+    <!-- 非 macOS 窗口控制 -->
+    <div v-else data-tauri-drag-region="false" class="flex items-center" :class="appStore.isWorkMode ? 'gap-1 opacity-70 hover:opacity-100' : 'gap-2'">
       <button @click.stop="handleMinimize" class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded transition-colors cursor-pointer">
         <Minus :size="14" />
       </button>
-      <button @click.stop="handleMaximize" class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded transition-colors cursor-pointer">
-        <Square :size="12" />
+      <button
+        @click.stop="handleMaximize"
+        class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded transition-colors cursor-pointer"
+        :title="isMaximized ? '还原' : '最大化'"
+      >
+        <Minimize2 v-if="isMaximized" :size="14" />
+        <Square v-else :size="12" />
       </button>
       <button @click.stop="handleClose" class="p-1.5 text-slate-500 hover:text-white hover:bg-red-500 rounded transition-colors cursor-pointer">
         <X :size="14" />
@@ -44,3 +122,27 @@ const handleClose = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.mac-traffic-light {
+  display: inline-flex;
+  height: 12px;
+  width: 12px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: rgba(31, 41, 55, 0.82);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.18),
+    0 1px 1px rgba(0, 0, 0, 0.12);
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.mac-traffic-light:hover {
+  filter: brightness(1.05);
+}
+
+.mac-traffic-light:active {
+  transform: scale(0.92);
+}
+</style>

@@ -10,12 +10,14 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "shortcut-assistant",
         "width": 800,
         "height": 600,
         "transparent": true,
+        "backgroundColor": "#00000000",
         "decorations": false
       }
     ],

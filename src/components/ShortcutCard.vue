@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { 
   Play, 
   Edit2, 
@@ -9,7 +9,9 @@ import {
   Repeat,
   MoreVertical,
   Check,
-  CircleCheck
+  CircleCheck,
+  Loader2,
+  XCircle
 } from 'lucide-vue-next';
 import type { Shortcut } from '../stores/shortcut';
 import { useShortcutStore } from '../stores/shortcut';
@@ -20,6 +22,7 @@ defineProps<{
   selected?: boolean;
   batchMode?: boolean;
   workMode?: boolean;
+  feedbackStatus?: 'running' | 'success' | 'error';
 }>();
 
 defineEmits(['trigger', 'edit', 'delete', 'toggle', 'select']);
@@ -28,6 +31,14 @@ const store = useShortcutStore();
 
 const showMenu = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
+const workCardUi = computed(() => {
+  const size = store.settings.workCardSize || 'medium';
+  return {
+    icon: size === 'small' ? 'w-4 h-4' : size === 'large' ? 'w-7 h-7' : 'w-5 h-5',
+    title: size === 'small' ? 'text-[10px]' : size === 'large' ? 'text-sm' : 'text-xs',
+    padding: size === 'small' ? 'p-1.5' : size === 'large' ? 'p-3' : 'p-2',
+  };
+});
 
 const toggleMenu = (e: Event) => {
   e.stopPropagation();
@@ -56,30 +67,53 @@ onUnmounted(() => {
 
 <template>
   <div 
-    class="rounded-xl border overflow-hidden transition-all duration-300 group relative shadow-sm flex flex-col h-full select-none border-slate-200/60 dark:border-slate-700/60"
+    class="border overflow-hidden transition-all duration-300 group relative flex flex-col h-full select-none"
     :class="{ 
       'opacity-50 grayscale-[30%]': !shortcut.enabled && !batchMode,
       'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 scale-[1.02] z-10': selected,
-      'cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.96] active:shadow-sm': workMode,
-      'cursor-grab active:cursor-grabbing hover:shadow-lg dark:hover:shadow-xl hover:-translate-y-0.5': !batchMode && !workMode,
+      'ring-2 ring-blue-400/50': feedbackStatus === 'running',
+      'ring-2 ring-emerald-400/60': feedbackStatus === 'success',
+      'ring-2 ring-red-400/60': feedbackStatus === 'error',
+      'rounded-xl cursor-pointer hover:shadow-[0_10px_30px_rgba(0,0,0,0.22)] hover:-translate-y-0.5 active:scale-[0.96] active:shadow-sm border-white/10 bg-slate-950/85 backdrop-blur-xl': workMode,
+      'rounded-xl shadow-sm border-slate-200/60 dark:border-slate-700/60 cursor-grab active:cursor-grabbing hover:shadow-lg dark:hover:shadow-xl hover:-translate-y-0.5': !batchMode && !workMode,
       'cursor-pointer hover:border-blue-500': batchMode,
       'no-drag': workMode, // 在工作模式下禁用拖拽
-      'bg-white/60 dark:bg-slate-900/60 backdrop-blur-md': store.settings.transparentWindow,
-      'bg-white dark:bg-slate-900': !store.settings.transparentWindow
+      'bg-white/60 dark:bg-slate-900/60 backdrop-blur-md': store.settings.transparentWindow && !workMode,
+      'bg-white dark:bg-slate-900': !store.settings.transparentWindow && !workMode
     }"
     :style="{ 
-      backgroundColor: workMode ? (selected ? `color-mix(in srgb, ${shortcut.color} 10%, transparent)` : `color-mix(in srgb, ${shortcut.color} 3%, transparent)`) : `color-mix(in srgb, ${shortcut.color} 5%, transparent)`, 
-      borderColor: selected ? shortcut.color : undefined,
-      boxShadow: selected ? `0 8px 30px ${shortcut.color}30` : 'none'
+      backgroundColor: workMode ? `color-mix(in srgb, ${shortcut.color} 24%, rgba(15, 23, 42, 0.86))` : `color-mix(in srgb, ${shortcut.color} 5%, transparent)`, 
+      borderColor: selected || workMode ? `color-mix(in srgb, ${shortcut.color} ${workMode ? 55 : 100}%, transparent)` : undefined,
+      boxShadow: feedbackStatus === 'success'
+        ? `0 0 0 1px rgba(52, 211, 153, 0.45), 0 12px 32px rgba(52, 211, 153, 0.18)`
+        : feedbackStatus === 'error'
+          ? `0 0 0 1px rgba(248, 113, 113, 0.45), 0 12px 32px rgba(248, 113, 113, 0.18)`
+          : feedbackStatus === 'running'
+            ? `0 0 0 1px rgba(96, 165, 250, 0.45), 0 12px 32px rgba(96, 165, 250, 0.18)`
+            : selected ? `0 8px 30px ${shortcut.color}30` : 'none'
     }"
     @click="batchMode ? $emit('select', shortcut.id) : (workMode ? $emit('trigger', shortcut) : null)"
   >
     <!-- 背景渐变发光效果 (工作模式下弱化) -->
     <div 
       class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[50px] transition-opacity"
-      :class="workMode ? 'opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20' : 'opacity-10 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-40'"
+      :class="workMode ? 'opacity-0' : 'opacity-10 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-40'"
       :style="{ backgroundColor: shortcut.color }"
     ></div>
+    <div
+      v-if="feedbackStatus"
+      class="absolute right-2 top-2 z-20 flex h-5 w-5 items-center justify-center rounded-full border backdrop-blur"
+      :class="[
+        feedbackStatus === 'running' ? 'border-blue-300/50 bg-blue-500/20 text-blue-200' : '',
+        feedbackStatus === 'success' ? 'border-emerald-300/50 bg-emerald-500/20 text-emerald-200' : '',
+        feedbackStatus === 'error' ? 'border-red-300/50 bg-red-500/20 text-red-200' : ''
+      ]"
+      :title="feedbackStatus === 'running' ? '发送中' : feedbackStatus === 'success' ? '发送成功' : '发送失败'"
+    >
+      <Loader2 v-if="feedbackStatus === 'running'" :size="12" class="animate-spin" />
+      <Check v-else-if="feedbackStatus === 'success'" :size="12" />
+      <XCircle v-else :size="12" />
+    </div>
     <!-- 复选框 (仅在批量模式显示) -->
     <div v-if="batchMode" class="absolute top-3 left-3 z-10">
       <div 
@@ -95,12 +129,12 @@ onUnmounted(() => {
 
     <!-- 顶部装饰色条 (工作模式下变细) -->
     <div 
-      class="w-full opacity-80 transition-all duration-300" 
-      :class="workMode ? 'h-0.5' : 'h-1'"
+      v-if="!workMode"
+      class="w-full h-1 opacity-80 transition-all duration-300" 
       :style="{ backgroundColor: shortcut.color }"
     ></div>
 
-    <div class="flex flex-col flex-1 relative z-10 transition-all duration-300" :class="workMode ? 'p-1' : 'p-4'">
+    <div class="flex flex-col flex-1 relative z-10 transition-all duration-300" :class="workMode ? workCardUi.padding : 'p-4'">
       <div :class="[workMode ? 'mb-0 flex-col items-center justify-center gap-0' : 'mb-3 items-start flex-row justify-between', 'flex h-full w-full']">
         <div class="flex-1 min-w-0" :class="workMode ? 'flex flex-col items-center justify-center w-full h-full' : 'mr-2'">
           <div 
@@ -110,12 +144,12 @@ onUnmounted(() => {
             <component 
               :is="getShortcutIcon(shortcut.icon)" 
               class="shrink-0"
-              :class="workMode ? 'w-4 h-4' : 'w-5 h-5'"
+              :class="workMode ? workCardUi.icon : 'w-5 h-5'"
               :style="{ color: shortcut.color }"
             />
             <h3 
               class="font-bold truncate transition-all duration-300 min-w-0" 
-              :class="workMode ? 'text-[11px] leading-tight text-center w-full' : 'text-lg flex-1'"
+              :class="workMode ? `${workCardUi.title} leading-tight text-center w-full` : 'text-lg flex-1'"
               :style="{ color: shortcut.color }"
               :title="workMode ? shortcut.name : ''"
             >

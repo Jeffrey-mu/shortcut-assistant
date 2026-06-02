@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import { writeTextFile, readTextFile, mkdir, exists } from '@tauri-apps/plugin-fs';
 import { appDataDir, join } from '@tauri-apps/api/path';
+import type { AccentTheme } from '../data/themePalettes';
 
 export interface ShortcutTarget {
   type: 'keys'; // 仅保留转发按键类型
@@ -33,6 +34,10 @@ export interface AppSettings {
   minimizeToTray: boolean;
   theme: 'light' | 'dark';
   transparentWindow: boolean;
+  windowOpacity: number;
+  workOpacity: number;
+  workCardSize: 'small' | 'medium' | 'large';
+  accentTheme: AccentTheme;
 }
 
 const CONFIG_FILE = 'config.json';
@@ -45,6 +50,10 @@ export const useShortcutStore = defineStore('shortcut', {
       minimizeToTray: true,
       theme: 'dark',
       transparentWindow: false,
+      windowOpacity: 65,
+      workOpacity: 86,
+      workCardSize: 'medium',
+      accentTheme: 'green',
     } as AppSettings,
     isLoaded: false,
   }),
@@ -113,7 +122,7 @@ export const useShortcutStore = defineStore('shortcut', {
           const content = await readTextFile(configPath);
           const data = JSON.parse(content);
           this.shortcuts = data.shortcuts || [];
-          this.settings = data.settings || this.settings;
+          this.settings = { ...this.settings, ...(data.settings || {}) };
           console.log('配置已加载');
         }
       } catch (error) {
