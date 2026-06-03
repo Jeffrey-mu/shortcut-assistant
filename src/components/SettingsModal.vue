@@ -7,6 +7,7 @@ import { themePalettes } from '../data/themePalettes';
 
 const props = defineProps<{
   show: boolean;
+  compact?: boolean;
 }>();
 
 const emit = defineEmits(['close']);
@@ -63,29 +64,52 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-sm transition-colors duration-300" @click="emit('close')"></div>
+  <div
+    v-if="show"
+    class="fixed inset-0 z-50 flex"
+    :class="compact ? 'items-start justify-end p-2' : 'items-center justify-center'"
+  >
+    <div
+      class="absolute inset-0 transition-colors duration-300"
+      :class="compact ? 'bg-transparent' : 'bg-slate-900/40 backdrop-blur-sm dark:bg-black/70'"
+      @click="emit('close')"
+    ></div>
     
-    <div class="relative flex max-h-[min(86vh,720px)] w-[min(92vw,520px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200 transition-colors duration-300 dark:border-slate-700 dark:bg-slate-900">
-      <div class="shrink-0 border-b border-slate-200 bg-slate-50 px-5 py-4 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/50">
+    <div
+      class="relative flex flex-col overflow-hidden border border-slate-200 bg-[color:var(--light-panel-strong)] shadow-2xl animate-in zoom-in-95 duration-200 transition-colors duration-300 dark:border-white/10 dark:bg-[#090d19] dark:shadow-[0_24px_80px_rgba(0,0,0,0.62)]"
+      :class="compact ? 'max-h-[calc(100vh-1rem)] w-[min(92vw,360px)] rounded-xl' : 'max-h-[min(86vh,720px)] w-[min(92vw,520px)] rounded-2xl'"
+    >
+      <div
+        class="shrink-0 border-b border-slate-200 bg-[image:var(--light-header-bg)] transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035]"
+        :class="compact ? 'px-3 py-2.5' : 'px-5 py-4'"
+      >
         <div class="flex items-center justify-between gap-3">
-          <h2 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white">
-            <Monitor :size="20" class="text-blue-500 dark:text-blue-400" />
+          <h2
+            class="flex items-center gap-2 font-bold text-slate-800 dark:text-white"
+            :class="compact ? 'text-sm' : 'text-lg'"
+          >
+            <Monitor :size="compact ? 16 : 20" class="text-blue-500 dark:text-blue-400" />
             系统设置
           </h2>
-          <button @click="emit('close')" class="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
-            <X :size="20" />
+          <button @click="emit('close')" class="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.075] dark:hover:text-white">
+            <X :size="compact ? 17 : 20" />
           </button>
         </div>
 
-        <div class="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-950/60">
+        <div
+          class="grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-[color:var(--light-panel)] p-1 dark:border-white/10 dark:bg-black/24"
+          :class="compact ? 'mt-2' : 'mt-4'"
+        >
           <button
             v-for="tab in tabs"
             :key="tab.id"
             @click="activeTab = tab.id"
-            class="flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all"
-            :style="activeTab === tab.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
-            :class="activeTab === tab.id ? 'shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
+            class="flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 font-semibold transition-all"
+            :style="activeTab === tab.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
+            :class="[
+              compact ? 'py-1.5 text-[11px]' : 'py-2 text-xs',
+              activeTab === tab.id ? 'shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            ]"
             :title="tab.label"
           >
             <component :is="tab.icon" :size="15" class="shrink-0" />
@@ -94,9 +118,9 @@ const handleSave = async () => {
         </div>
       </div>
 
-      <div class="min-h-0 flex-1 overflow-y-auto p-5">
+      <div class="min-h-0 flex-1 overflow-y-auto" :class="compact ? 'p-3' : 'p-5'">
         <div v-if="activeTab === 'general'" class="space-y-3">
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div>
               <div class="text-slate-700 dark:text-slate-200 font-medium">开机自动启动</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">登录系统时自动在后台运行助手</div>
@@ -110,7 +134,7 @@ const handleSave = async () => {
             </button>
           </div>
 
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div>
               <div class="text-slate-700 dark:text-slate-200 font-medium">关闭时最小化到托盘</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">点击关闭按钮时隐藏到系统托盘而不是退出程序</div>
@@ -126,7 +150,7 @@ const handleSave = async () => {
         </div>
 
         <div v-else-if="activeTab === 'window'" class="space-y-3">
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div>
               <div class="text-slate-700 dark:text-slate-200 font-medium">开启窗口透明</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">允许窗口背景呈现半透明效果</div>
@@ -140,7 +164,7 @@ const handleSave = async () => {
             </button>
           </div>
 
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <div class="text-slate-700 dark:text-slate-200 font-medium">全窗口透明度</div>
@@ -162,7 +186,7 @@ const handleSave = async () => {
         </div>
 
         <div v-else-if="activeTab === 'live'" class="space-y-3">
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <div class="text-slate-700 dark:text-slate-200 font-medium">工作模式透明度</div>
@@ -180,18 +204,18 @@ const handleSave = async () => {
             />
           </div>
 
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div>
               <div class="text-slate-700 dark:text-slate-200 font-medium">工作卡片尺寸</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">控制工作模式按钮密度</div>
             </div>
-            <div class="flex bg-slate-200 dark:bg-slate-900 rounded-lg p-1 border border-slate-300 dark:border-slate-700 transition-colors duration-300">
+            <div class="flex bg-[color:var(--light-panel-hover)] dark:bg-black/24 rounded-lg p-1 border border-slate-300 dark:border-white/10 transition-colors duration-300">
               <button
                 v-for="size in ['small', 'medium', 'large']"
                 :key="size"
                 @click="localSettings.workCardSize = size as AppSettings['workCardSize']"
                 class="px-2.5 py-1.5 rounded-md text-xs transition-colors"
-                :class="localSettings.workCardSize === size ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                :class="localSettings.workCardSize === size ? 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.10] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
               >
                 {{ size === 'small' ? '小' : size === 'medium' ? '中' : '大' }}
               </button>
@@ -200,30 +224,30 @@ const handleSave = async () => {
         </div>
 
         <div v-else class="space-y-3">
-          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div>
               <div class="text-slate-700 dark:text-slate-200 font-medium">应用主题</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">亮色/暗色模式切换</div>
             </div>
-            <div class="flex bg-slate-200 dark:bg-slate-900 rounded-lg p-1 border border-slate-300 dark:border-slate-700 transition-colors duration-300">
+            <div class="flex bg-[color:var(--light-panel-hover)] dark:bg-black/24 rounded-lg p-1 border border-slate-300 dark:border-white/10 transition-colors duration-300">
               <button 
                 @click="localSettings.theme = 'light'"
                 class="p-1.5 rounded-md transition-colors"
-                :class="localSettings.theme === 'light' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                :class="localSettings.theme === 'light' ? 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.10] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
               >
                 <Sun :size="16" />
               </button>
               <button 
                 @click="localSettings.theme = 'dark'"
                 class="p-1.5 rounded-md transition-colors"
-                :class="localSettings.theme === 'dark' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                :class="localSettings.theme === 'dark' ? 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.10] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
               >
                 <Moon :size="16" />
               </button>
             </div>
           </div>
 
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div class="p-3 rounded-xl bg-[color:var(--light-panel)] dark:bg-white/[0.045] border border-slate-200 dark:border-white/10 transition-colors duration-300">
             <div class="mb-3">
               <div class="text-slate-700 dark:text-slate-200 font-medium">配色方案</div>
               <div class="text-slate-500 dark:text-slate-500 text-xs mt-0.5">用于工作模式、按钮和状态反馈</div>
@@ -236,9 +260,11 @@ const handleSave = async () => {
                 class="h-14 rounded-lg border transition-all flex flex-col items-center justify-center gap-1"
                 :class="localSettings.accentTheme === palette.id ? 'scale-[1.03] shadow-lg' : 'opacity-80 hover:opacity-100'"
                 :style="{
-                  background: `linear-gradient(135deg, ${palette.soft}, rgba(15, 23, 42, 0.16))`,
+                  background: localSettings.theme === 'dark'
+                    ? `linear-gradient(135deg, ${palette.soft}, rgba(15, 23, 42, 0.16))`
+                    : `linear-gradient(135deg, color-mix(in srgb, ${palette.accent} 13%, #f8fafc), color-mix(in srgb, ${palette.accent2} 9%, #e2e8f0))`,
                   borderColor: localSettings.accentTheme === palette.id ? palette.accent : palette.border,
-                  color: palette.text,
+                  color: localSettings.theme === 'dark' ? palette.text : `color-mix(in srgb, ${palette.accent} 70%, #0f172a)`,
                   boxShadow: localSettings.accentTheme === palette.id ? `0 8px 24px ${palette.soft}` : 'none'
                 }"
                 :title="palette.name"
@@ -254,10 +280,13 @@ const handleSave = async () => {
         </div>
       </div>
 
-      <div class="shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-slate-800 dark:bg-slate-800/30 dark:shadow-[0_-12px_28px_rgba(0,0,0,0.18)] flex justify-end gap-3">
+      <div
+        class="shrink-0 border-t border-slate-200 bg-[image:var(--light-header-bg)] shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035] dark:shadow-[0_-12px_28px_rgba(0,0,0,0.28)] flex justify-end gap-3"
+        :class="compact ? 'px-3 py-2.5' : 'px-5 py-4'"
+      >
         <button 
           @click="emit('close')"
-          class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.075] transition-colors"
         >
           取消
         </button>

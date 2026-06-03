@@ -25,7 +25,7 @@ const filters = [
 <template>
   <aside data-tauri-drag-region class="w-64 text-slate-800 dark:text-white flex flex-col h-full border-r border-slate-200/40 dark:border-slate-700/40 transition-colors duration-300"
          :style="store.settings.transparentWindow ? { backgroundColor: 'var(--window-panel)' } : undefined"
-         :class="store.settings.transparentWindow ? 'backdrop-blur-xl' : 'bg-white dark:bg-slate-900'">
+         :class="store.settings.transparentWindow ? 'backdrop-blur-xl' : 'bg-[color:var(--light-panel-strong)] dark:bg-slate-900'">
     <div data-tauri-drag-region="false" class="px-4 mt-6 mb-6">
       <button 
         @click="$emit('add-shortcut')"
