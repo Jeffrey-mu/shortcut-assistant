@@ -19,15 +19,15 @@ const openLink = async (url: string) => {
 
 <template>
   <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-sm transition-colors duration-300" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm transition-colors duration-300" @click="emit('close')"></div>
     
-    <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 transition-colors duration-300">
-      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 transition-colors duration-300">
+    <div class="relative bg-[color:var(--light-panel-strong)] dark:bg-[#090d19] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md shadow-2xl dark:shadow-[0_24px_80px_rgba(0,0,0,0.62)] overflow-hidden animate-in zoom-in-95 duration-200 transition-colors duration-300">
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-[image:var(--light-header-bg)] dark:bg-white/[0.035] transition-colors duration-300">
         <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <Info :size="20" class="text-blue-500 dark:text-blue-400" />
           关于软件
         </h2>
-        <button @click="emit('close')" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+        <button @click="emit('close')" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.075]">
           <X :size="20" />
         </button>
       </div>
@@ -47,7 +47,7 @@ const openLink = async (url: string) => {
         <div class="flex flex-col w-full gap-3">
           <button 
             @click="openLink('https://tauri.app/')"
-            class="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors text-sm"
+            class="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[color:var(--light-panel)] dark:bg-white/[0.055] hover:bg-[color:var(--light-panel-hover)] dark:hover:bg-white/[0.085] text-slate-700 dark:text-slate-300 rounded-xl transition-colors text-sm"
           >
             <ExternalLink :size="16" />
             基于 Tauri 2.0 构建
@@ -55,7 +55,7 @@ const openLink = async (url: string) => {
         </div>
       </div>
 
-      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 text-center transition-colors duration-300">
+      <div class="px-6 py-4 bg-[image:var(--light-header-bg)] dark:bg-white/[0.035] border-t border-slate-200 dark:border-white/10 text-center transition-colors duration-300">
         <p class="text-xs text-slate-400 dark:text-slate-500">&copy; 2026 Jeffrey. All rights reserved.</p>
       </div>
     </div>

@@ -75,12 +75,41 @@ const filterOptions = computed(() => [
 ] as const);
 
 const appShellStyle = computed(() => {
+  const isDark = store.settings.theme === 'dark';
   const paletteVars = {
     '--accent': activePalette.value.accent,
     '--accent-2': activePalette.value.accent2,
     '--accent-soft': activePalette.value.soft,
     '--accent-border': activePalette.value.border,
     '--accent-text': activePalette.value.text,
+    '--accent-contrast': isDark
+      ? activePalette.value.text
+      : `color-mix(in srgb, ${activePalette.value.accent} 72%, #0f172a)`,
+    '--light-app-bg': isDark
+      ? `radial-gradient(circle at 18% 0%, color-mix(in srgb, ${activePalette.value.accent} 12%, transparent), transparent 32%), linear-gradient(180deg, #070a12 0%, #0b1020 46%, #05070c 100%)`
+      : `radial-gradient(circle at 16% 0%, color-mix(in srgb, ${activePalette.value.accent} 13%, transparent), transparent 34%), linear-gradient(180deg, color-mix(in srgb, ${activePalette.value.accent} 4%, #f8fafc) 0%, color-mix(in srgb, ${activePalette.value.accent2} 6%, #f1f5f9) 46%, #e8edf4 100%)`,
+    '--light-header-bg': isDark
+      ? `linear-gradient(180deg, rgba(8, 12, 22, 0.92), rgba(8, 12, 22, 0.92))`
+      : `linear-gradient(180deg, color-mix(in srgb, ${activePalette.value.accent} 5%, rgba(248, 250, 252, 0.94)), color-mix(in srgb, ${activePalette.value.accent2} 7%, rgba(241, 245, 249, 0.9)))`,
+    '--light-panel': isDark
+      ? 'rgba(255, 255, 255, 0.045)'
+      : `color-mix(in srgb, ${activePalette.value.accent} 5%, rgba(248, 250, 252, 0.86))`,
+    '--light-panel-strong': isDark
+      ? 'rgba(255, 255, 255, 0.075)'
+      : `color-mix(in srgb, ${activePalette.value.accent} 7%, rgba(241, 245, 249, 0.94))`,
+    '--light-panel-hover': isDark
+      ? 'rgba(255, 255, 255, 0.085)'
+      : `color-mix(in srgb, ${activePalette.value.accent} 8%, rgba(226, 232, 240, 0.9))`,
+    '--light-content-bg': isDark
+      ? `radial-gradient(circle at 86% 8%, color-mix(in srgb, ${activePalette.value.accent} 8%, transparent), transparent 30%), linear-gradient(180deg, rgba(3, 7, 18, 0.16), rgba(0, 0, 0, 0.24))`
+      : `radial-gradient(circle at top left, color-mix(in srgb, ${activePalette.value.accent} 12%, rgba(248, 250, 252, 0.72)), transparent 36%), linear-gradient(180deg, color-mix(in srgb, ${activePalette.value.accent} 4%, rgba(241, 245, 249, 0.82)), color-mix(in srgb, ${activePalette.value.accent2} 5%, rgba(226, 232, 240, 0.7)))`,
+    '--work-toolbar-bg': isDark
+      ? 'rgba(2, 6, 23, 0.35)'
+      : `color-mix(in srgb, ${activePalette.value.accent} 18%, rgba(224, 242, 254, 0.44))`,
+    '--work-status-bg': isDark
+      ? 'rgba(2, 6, 23, 0.32)'
+      : `color-mix(in srgb, ${activePalette.value.accent2} 18%, rgba(236, 253, 245, 0.46))`,
+    '--work-status-text': isDark ? activePalette.value.text : '#0f172a',
   };
 
   if (appStore.isWorkMode) {
@@ -88,11 +117,15 @@ const appShellStyle = computed(() => {
     const alpha = Math.min(0.6, Math.max(0, 1 - transparency / 100));
     const surface = store.settings.theme === 'dark'
       ? `rgba(2, 6, 23, ${alpha})`
-      : `rgba(248, 250, 252, ${alpha})`;
+      : `color-mix(in srgb, ${activePalette.value.accent} 22%, rgba(219, 234, 254, ${Math.min(0.52, alpha + 0.1)}))`;
+    const workBackground = store.settings.theme === 'dark'
+      ? surface
+      : `radial-gradient(circle at 16% 12%, color-mix(in srgb, ${activePalette.value.accent} 34%, transparent), transparent 38%), radial-gradient(circle at 88% 82%, color-mix(in srgb, ${activePalette.value.accent2} 28%, transparent), transparent 42%), linear-gradient(135deg, color-mix(in srgb, ${activePalette.value.accent} 20%, rgba(224, 242, 254, ${Math.min(0.58, alpha + 0.18)})), color-mix(in srgb, ${activePalette.value.accent2} 18%, rgba(236, 253, 245, ${Math.min(0.52, alpha + 0.14)})))`;
     return {
+      background: workBackground,
       backgroundColor: surface,
       '--window-surface': surface,
-      '--window-panel': surface,
+      '--window-panel': store.settings.theme === 'dark' ? surface : `color-mix(in srgb, ${activePalette.value.accent} 20%, rgba(224, 242, 254, ${Math.min(0.56, alpha + 0.16)}))`,
       ...paletteVars,
     };
   }
@@ -101,34 +134,30 @@ const appShellStyle = computed(() => {
   const alpha = Math.max(0.04, Math.min(1, 1 - (transparency || 0) / 100));
   const surface = store.settings.theme === 'dark'
     ? `rgba(2, 6, 23, ${alpha})`
-    : `rgba(248, 250, 252, ${alpha})`;
+    : `color-mix(in srgb, ${activePalette.value.accent} 5%, rgba(241, 245, 249, ${alpha}))`;
   return {
     backgroundColor: surface,
     '--window-surface': surface,
     '--window-panel': store.settings.theme === 'dark'
       ? `rgba(15, 23, 42, ${Math.min(0.38, alpha + 0.08)})`
-      : `rgba(255, 255, 255, ${Math.min(0.45, alpha + 0.08)})`,
+      : `color-mix(in srgb, ${activePalette.value.accent} 7%, rgba(241, 245, 249, ${Math.min(0.52, alpha + 0.08)}))`,
     ...paletteVars,
   };
 });
 
+const isDarkTheme = computed(() => store.settings.theme === 'dark');
+
 const workGridStyle = computed(() => {
   if (!appStore.isWorkMode) return {};
-  const sizeMap = {
-    small: '64px',
-    medium: '88px',
-    large: '116px',
+  const heightMap = {
+    small: '68px',
+    medium: '76px',
+    large: '86px',
   } as const;
-  const size = sizeMap[store.settings.workCardSize || 'medium'];
+  const height = heightMap[store.settings.workCardSize || 'medium'];
   return {
-    gridTemplateColumns: `repeat(auto-fill, minmax(${size}, ${size}))`,
-    gridAutoRows: size,
+    '--work-card-height': height,
   };
-});
-
-const workCardSizeLabel = computed(() => {
-  const size = store.settings.workCardSize || 'medium';
-  return size === 'small' ? '小' : size === 'large' ? '大' : '中';
 });
 
 const handleAddShortcut = () => {
@@ -364,34 +393,36 @@ onMounted(async () => {
   <div class="app-window-shell m-px flex h-[calc(100vh-2px)] flex-col overflow-hidden text-slate-800 font-sans transition-colors duration-300 dark:text-slate-200"
        :style="appShellStyle"
        :class="[
-         appStore.isWorkMode ? 'rounded-2xl shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]' : 'rounded-xl shadow-[0_18px_55px_rgba(2,6,23,0.28),inset_0_0_0_1px_rgba(148,163,184,0.32)] dark:shadow-[0_18px_55px_rgba(0,0,0,0.36),inset_0_0_0_1px_rgba(51,65,85,0.72)]',
+         appStore.isWorkMode ? 'rounded-2xl shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]' : 'rounded-xl shadow-[0_22px_60px_rgba(15,23,42,0.16),inset_0_0_0_1px_rgba(226,232,240,0.88)] dark:shadow-[0_22px_60px_rgba(0,0,0,0.58),inset_0_0_0_1px_rgba(148,163,184,0.16)]',
          !appStore.isWorkMode && store.settings.transparentWindow ? 'backdrop-blur-2xl' : '',
-         !appStore.isWorkMode && !store.settings.transparentWindow ? 'bg-slate-50 dark:bg-slate-950' : ''
+         !appStore.isWorkMode && !store.settings.transparentWindow ? 'bg-[image:var(--light-app-bg)] dark:bg-[radial-gradient(circle_at_18%_0%,rgba(59,130,246,0.12),transparent_32%),linear-gradient(180deg,#070a12_0%,#0b1020_46%,#05070c_100%)]' : ''
        ]">
     <Titlebar v-if="!appStore.isWorkMode" />
     <div class="flex flex-1 overflow-hidden relative">
     <main class="flex-1 flex flex-col min-w-0 relative">
       <div
         v-if="triggerFeedback"
-        class="absolute top-4 right-4 z-[70] max-w-[min(360px,calc(100%-2rem))] rounded-lg border px-4 py-3 shadow-xl backdrop-blur-xl transition-all"
+        class="absolute z-[70] rounded-lg border shadow-lg backdrop-blur-xl transition-all"
+        :style="appStore.isWorkMode ? { boxShadow: '0 10px 24px rgba(0,0,0,0.22)' } : undefined"
         :class="[
+          appStore.isWorkMode
+            ? 'right-1.5 top-8 max-w-[min(220px,calc(100%-3rem))] px-2 py-1.5'
+            : 'right-4 top-4 max-w-[min(280px,calc(100%-2rem))] px-3 py-2',
           triggerFeedback.status === 'success' ? 'bg-emerald-50/95 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-100' : '',
           triggerFeedback.status === 'running' ? 'bg-blue-50/95 dark:bg-blue-950/80 border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-100' : '',
           triggerFeedback.status === 'error' ? 'bg-red-50/95 dark:bg-red-950/80 border-red-200 dark:border-red-500/30 text-red-800 dark:text-red-100' : ''
         ]"
       >
-        <div class="flex items-start gap-3">
-          <Loader2 v-if="triggerFeedback.status === 'running'" :size="18" class="mt-0.5 shrink-0 animate-spin" />
-          <CheckCircle2 v-else-if="triggerFeedback.status === 'success'" :size="18" class="mt-0.5 shrink-0" />
-          <XCircle v-else :size="18" class="mt-0.5 shrink-0" />
+        <div class="flex items-center gap-2">
+          <Loader2 v-if="triggerFeedback.status === 'running'" :size="appStore.isWorkMode ? 13 : 15" class="shrink-0 animate-spin" />
+          <CheckCircle2 v-else-if="triggerFeedback.status === 'success'" :size="appStore.isWorkMode ? 13 : 15" class="shrink-0" />
+          <XCircle v-else :size="appStore.isWorkMode ? 13 : 15" class="shrink-0" />
           <div class="min-w-0">
-            <div class="text-sm font-semibold truncate">{{ triggerFeedback.message }}</div>
-            <div class="mt-1 flex items-center gap-2 text-xs opacity-80 min-w-0">
-              <span class="truncate">{{ triggerFeedback.name }}</span>
-              <span class="font-mono rounded border px-1.5 py-0.5 shrink-0"
-                    :class="triggerFeedback.status === 'error' ? 'border-red-300/60 dark:border-red-400/30' : 'border-current/20'">
-                {{ triggerFeedback.keys }}
-              </span>
+            <div class="truncate font-semibold" :class="appStore.isWorkMode ? 'text-[11px] leading-4' : 'text-xs leading-4'">
+              {{ triggerFeedback.status === 'running' ? triggerFeedback.message : triggerFeedback.status === 'success' ? '已发送' : '发送失败' }}
+            </div>
+            <div class="truncate opacity-75" :class="appStore.isWorkMode ? 'text-[10px] leading-3' : 'text-[11px] leading-4'">
+              {{ triggerFeedback.name }}
             </div>
           </div>
         </div>
@@ -400,63 +431,59 @@ onMounted(async () => {
       <!-- 工作模式悬浮工具 -->
       <div
         v-if="appStore.isWorkMode"
-        class="absolute top-2 right-2 z-50 flex items-center gap-1 rounded-full border bg-slate-950/45 p-1 shadow-lg backdrop-blur-xl"
-        :style="{ color: 'var(--accent-text)', borderColor: 'var(--accent-border)' }"
+        class="absolute right-1.5 top-1.5 z-50 flex items-center gap-0.5 rounded-full border p-0.5 shadow-lg backdrop-blur-xl"
+        :style="{ backgroundColor: 'var(--work-toolbar-bg)', color: 'var(--work-status-text)', borderColor: 'var(--accent-border)' }"
       >
         <button
           @click="appStore.toggleAlwaysOnTop"
-          class="rounded-full p-1.5 transition-all hover:bg-white/12 active:scale-95"
-          :style="appStore.isAlwaysOnTop ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+          class="rounded-full p-1 transition-all hover:bg-white/12 active:scale-95"
+          :style="appStore.isAlwaysOnTop ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
           title="窗口置顶"
         >
-          <Pin :size="14" />
+          <Pin :size="12" />
         </button>
         <button
           @click="showSettings = true"
-          class="rounded-full p-1.5 transition-all hover:bg-white/12 active:scale-95"
+          class="rounded-full p-1 transition-all hover:bg-white/12 active:scale-95"
           title="工作模式设置"
         >
-          <Settings :size="14" />
+          <Settings :size="12" />
         </button>
         <button
           @click="appStore.toggleWorkMode"
-          class="rounded-full p-1.5 transition-all hover:bg-white/12 active:scale-95"
+          class="rounded-full p-1 transition-all hover:bg-white/12 active:scale-95"
           title="退出工作模式"
         >
-          <Minimize2 :size="14" />
+          <Minimize2 :size="12" />
         </button>
       </div>
 
       <div
         v-if="appStore.isWorkMode"
-        class="absolute left-3 bottom-3 z-40 flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-xl border px-3 py-2 text-xs backdrop-blur-xl"
-        :style="{ backgroundColor: 'rgba(2, 6, 23, 0.48)', borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }"
+        class="absolute bottom-1.5 left-1.5 z-40 flex max-w-[calc(100%-3rem)] items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] backdrop-blur-xl"
+        :style="{ backgroundColor: 'var(--work-status-bg)', borderColor: 'var(--accent-border)', color: 'var(--work-status-text)' }"
       >
-        <span class="flex items-center gap-1.5 rounded-lg px-2 py-1" :style="{ backgroundColor: 'var(--accent-soft)' }">
+        <span class="flex items-center gap-1 rounded-md px-1.5 py-0.5" :style="{ backgroundColor: 'var(--accent-soft)' }">
           <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: 'var(--accent)' }"></span>
           直播模式
         </span>
-        <span class="hidden sm:inline opacity-70">快捷键 {{ filteredShortcuts.length }}</span>
-        <span class="hidden sm:inline opacity-40">|</span>
-        <span class="hidden sm:inline opacity-70">透明 {{ store.settings.workOpacity }}%</span>
-        <span class="hidden sm:inline opacity-40">|</span>
-        <span class="hidden sm:inline opacity-70">卡片 {{ workCardSizeLabel }}</span>
+        <span class="opacity-70">{{ filteredShortcuts.length }} 个</span>
         <template v-if="triggerFeedback">
-          <span class="hidden md:inline opacity-40">|</span>
-          <span class="hidden md:inline truncate opacity-80">
-            {{ triggerFeedback.status === 'running' ? '发送中' : triggerFeedback.status === 'success' ? '已发送' : '失败' }}：{{ triggerFeedback.name }}
+          <span class="opacity-40">|</span>
+          <span class="truncate opacity-80">
+            {{ triggerFeedback.status === 'running' ? '发送中' : triggerFeedback.status === 'success' ? '已发送' : '失败' }}
           </span>
         </template>
       </div>
 
       <!-- 直播控制台 -->
-      <header v-if="!appStore.isWorkMode" data-tauri-drag-region class="border-b border-slate-200/60 px-5 py-4 transition-colors duration-300 dark:border-slate-800/70"
+      <header v-if="!appStore.isWorkMode" data-tauri-drag-region class="border-b border-slate-200/60 px-5 py-4 transition-colors duration-300 dark:border-white/10"
               :style="store.settings.transparentWindow ? { backgroundColor: 'var(--window-panel)' } : undefined"
-              :class="store.settings.transparentWindow ? 'backdrop-blur-xl' : 'bg-white/70 dark:bg-slate-950/80 backdrop-blur-xl'">
+              :class="store.settings.transparentWindow ? 'backdrop-blur-xl' : 'bg-[image:var(--light-header-bg)] shadow-[0_1px_0_rgba(255,255,255,0.72)_inset] backdrop-blur-xl dark:bg-[#080c16]/92 dark:shadow-[0_1px_0_rgba(255,255,255,0.06)_inset]'">
         <div data-tauri-drag-region="false" class="flex flex-col gap-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex min-w-0 items-center gap-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-950 shadow-lg shadow-slate-950/10"
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/40 text-slate-950 shadow-lg shadow-slate-950/10 dark:border-white/10"
                    :style="{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))' }">
                 <Radio :size="20" />
               </div>
@@ -470,16 +497,16 @@ onMounted(async () => {
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <button @click="handleImport" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white/70 text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-950 active:scale-95 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" title="导入配置">
+              <button @click="handleImport" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-[color:var(--light-panel)] text-slate-600 transition-all hover:bg-[color:var(--light-panel-hover)] hover:text-slate-950 active:scale-95 dark:border-white/10 dark:bg-white/[0.045] dark:text-slate-300 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-white" title="导入配置">
                 <Upload :size="17" />
               </button>
-              <button @click="handleExport" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white/70 text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-950 active:scale-95 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" title="导出配置">
+              <button @click="handleExport" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-[color:var(--light-panel)] text-slate-600 transition-all hover:bg-[color:var(--light-panel-hover)] hover:text-slate-950 active:scale-95 dark:border-white/10 dark:bg-white/[0.045] dark:text-slate-300 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-white" title="导出配置">
                 <Download :size="17" />
               </button>
-              <button @click="showAbout = true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white/70 text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-950 active:scale-95 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" title="关于软件">
+              <button @click="showAbout = true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-[color:var(--light-panel)] text-slate-600 transition-all hover:bg-[color:var(--light-panel-hover)] hover:text-slate-950 active:scale-95 dark:border-white/10 dark:bg-white/[0.045] dark:text-slate-300 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-white" title="关于软件">
                 <Info :size="17" />
               </button>
-              <button @click="showSettings = true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white/70 text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-950 active:scale-95 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" title="系统设置">
+              <button @click="showSettings = true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-[color:var(--light-panel)] text-slate-600 transition-all hover:bg-[color:var(--light-panel-hover)] hover:text-slate-950 active:scale-95 dark:border-white/10 dark:bg-white/[0.045] dark:text-slate-300 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-white" title="系统设置">
                 <Settings :size="17" />
               </button>
               <button
@@ -500,33 +527,33 @@ onMounted(async () => {
                 v-model="searchQuery"
                 type="text" 
                 placeholder="搜索快捷键或按键..." 
-                class="h-11 w-full rounded-xl border border-slate-200 bg-white/70 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-transparent focus:ring-2 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-600"
+                class="h-11 w-full rounded-xl border border-slate-200 bg-[color:var(--light-panel)] pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-transparent focus:ring-2 dark:border-white/10 dark:bg-black/24 dark:text-slate-100 dark:placeholder:text-slate-500"
                 :style="{ '--tw-ring-color': 'var(--accent)' }"
               />
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <div class="flex rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-900/70">
+              <div class="flex rounded-xl border border-slate-200/80 bg-[color:var(--light-panel)] p-1 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/[0.045] dark:shadow-none">
                 <button
                   v-for="filter in filterOptions"
                   :key="filter.id"
                   @click="currentFilter = filter.id"
                   class="flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-all"
-                  :style="currentFilter === filter.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+                  :style="currentFilter === filter.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
                   :class="currentFilter === filter.id ? '' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
                   :title="filter.label"
                 >
                   <component :is="filter.icon" :size="15" />
                   <span>{{ filter.label }}</span>
-                  <span class="rounded-md px-1.5 py-0.5 text-[10px]" :class="currentFilter === filter.id ? 'bg-white/10' : 'bg-slate-100 dark:bg-slate-800'">{{ filter.count }}</span>
+                  <span class="rounded-md px-1.5 py-0.5 text-[10px]" :class="currentFilter === filter.id ? (isDarkTheme ? 'bg-white/10' : 'bg-[color:var(--light-panel-strong)]') : 'bg-[color:var(--light-panel-hover)] dark:bg-slate-800'">{{ filter.count }}</span>
                 </button>
               </div>
 
-              <div class="flex rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-900/70">
+              <div class="flex rounded-xl border border-slate-200/80 bg-[color:var(--light-panel)] p-1 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/[0.045] dark:shadow-none">
                 <button 
                   @click="appStore.toggleAlwaysOnTop" 
                   class="h-9 w-9 rounded-lg transition-colors"
-                  :style="appStore.isAlwaysOnTop ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+                  :style="appStore.isAlwaysOnTop ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
                   :class="appStore.isAlwaysOnTop ? '' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
                   title="窗口置顶"
                 >
@@ -541,11 +568,11 @@ onMounted(async () => {
                 </button>
               </div>
 
-              <div class="flex rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-900/70">
+              <div class="flex rounded-xl border border-slate-200/80 bg-[color:var(--light-panel)] p-1 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/[0.045] dark:shadow-none">
                 <button 
                   @click="isGroupedByColor = !isGroupedByColor"
                   class="h-9 w-9 rounded-lg transition-all"
-                  :style="isGroupedByColor ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+                  :style="isGroupedByColor ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
                   :class="isGroupedByColor ? '' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
                   title="颜色分组"
                 >
@@ -554,7 +581,7 @@ onMounted(async () => {
                 <button 
                   @click="viewMode = 'grid'"
                   class="h-9 w-9 rounded-lg transition-all"
-                  :class="viewMode === 'grid' ? 'bg-slate-100 text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
+                  :class="viewMode === 'grid' ? 'bg-[color:var(--light-panel-strong)] text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-white/[0.10] dark:text-white dark:ring-1 dark:ring-white/10' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
                   title="网格视图"
                 >
                   <Grid :size="17" class="mx-auto" />
@@ -562,7 +589,7 @@ onMounted(async () => {
                 <button 
                   @click="viewMode = 'list'"
                   class="h-9 w-9 rounded-lg transition-all"
-                  :class="viewMode === 'list' ? 'bg-slate-100 text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
+                  :class="viewMode === 'list' ? 'bg-[color:var(--light-panel-strong)] text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-white/[0.10] dark:text-white dark:ring-1 dark:ring-white/10' : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'"
                   title="列表视图"
                 >
                   <ListIcon :size="17" class="mx-auto" />
@@ -572,7 +599,7 @@ onMounted(async () => {
               <button 
                 @click="isBatchMode = !isBatchMode; selectedIds.clear()"
                 class="h-11 rounded-xl border px-3 text-sm font-semibold transition-all"
-                :class="isBatchMode ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'border-slate-200 bg-white/70 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-slate-800'"
+                :class="isBatchMode ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'border-slate-200/80 bg-[color:var(--light-panel)] text-slate-700 shadow-sm shadow-slate-950/[0.03] hover:bg-[color:var(--light-panel-hover)] dark:border-white/10 dark:bg-white/[0.045] dark:text-slate-300 dark:shadow-none dark:hover:bg-white/[0.075]'"
               >
                 {{ isBatchMode ? '取消批量' : '批量操作' }}
               </button>
@@ -589,16 +616,16 @@ onMounted(async () => {
           <button @click="selectedIds.clear()" class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">取消全选</button>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="handleBatchToggle(true)" class="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-transparent rounded text-xs text-slate-700 dark:text-slate-200 transition-colors">批量启用</button>
-          <button @click="handleBatchToggle(false)" class="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-transparent rounded text-xs text-slate-700 dark:text-slate-200 transition-colors">批量禁用</button>
+          <button @click="handleBatchToggle(true)" class="px-3 py-1 bg-[color:var(--light-panel)] dark:bg-slate-800 hover:bg-[color:var(--light-panel-hover)] dark:hover:bg-slate-700 border border-slate-200 dark:border-transparent rounded text-xs text-slate-700 dark:text-slate-200 transition-colors">批量启用</button>
+          <button @click="handleBatchToggle(false)" class="px-3 py-1 bg-[color:var(--light-panel)] dark:bg-slate-800 hover:bg-[color:var(--light-panel-hover)] dark:hover:bg-slate-700 border border-slate-200 dark:border-transparent rounded text-xs text-slate-700 dark:text-slate-200 transition-colors">批量禁用</button>
           <button @click="handleBatchDelete" class="px-3 py-1 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-transparent rounded text-xs transition-colors">批量删除</button>
         </div>
       </div>
 
       <!-- 内容区 -->
-      <div class="flex-1 overflow-y-auto" :class="appStore.isWorkMode ? 'p-3 pt-3 pb-16' : 'bg-slate-100/70 p-5 dark:bg-slate-950/70'">
+      <div class="flex-1 overflow-y-auto" :class="appStore.isWorkMode ? 'p-1.5 pb-9 pr-10' : 'bg-[image:var(--light-content-bg)] p-5 dark:bg-[radial-gradient(circle_at_86%_8%,rgba(132,240,66,0.08),transparent_30%),linear-gradient(180deg,rgba(3,7,18,0.16),rgba(0,0,0,0.24))]'">
         <div v-if="filteredShortcuts.length === 0" class="h-full flex flex-col items-center justify-center text-slate-500 space-y-4">
-          <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
+          <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200 bg-[color:var(--light-panel-strong)] shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
             <Plus :size="38" class="opacity-30 text-slate-400" />
           </div>
           <div class="text-center">
@@ -616,20 +643,21 @@ onMounted(async () => {
               </h3>
               <div class="flex-1 h-px bg-slate-200 dark:bg-slate-800/50 transition-colors duration-300"></div>
             </div>
-            <div class="grid" 
+            <div
                  :style="workGridStyle"
                  :class="[
-                   viewMode === 'grid' && !appStore.isWorkMode ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
-                   viewMode === 'grid' && appStore.isWorkMode ? 'justify-start gap-2.5' : '',
-                   viewMode === 'list' ? 'grid-cols-1' : ''
+                   viewMode === 'grid' && !appStore.isWorkMode ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
+                   viewMode === 'grid' && appStore.isWorkMode ? 'flex flex-wrap content-start items-start justify-start gap-1.5' : '',
+                   viewMode === 'list' ? 'grid grid-cols-1' : ''
                  ]">
               <ShortcutCard 
-                v-for="shortcut in group" 
+                v-for="(shortcut, shortcutIndex) in group" 
                 :key="shortcut.id"
                 :shortcut="shortcut"
                 :batch-mode="isBatchMode"
                 :selected="selectedIds.has(shortcut.id)"
                 :work-mode="appStore.isWorkMode"
+                :animation-index="shortcutIndex"
                 :feedback-status="triggerFeedback?.shortcutId === shortcut.id ? triggerFeedback.status : undefined"
                 @trigger="handleTrigger"
                 @edit="handleEdit"
@@ -644,21 +672,21 @@ onMounted(async () => {
         <div 
           v-else
           ref="shortcutListRef"
-          class="grid"
           :style="workGridStyle"
           :class="[
-            viewMode === 'grid' && !appStore.isWorkMode ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
-            viewMode === 'grid' && appStore.isWorkMode ? 'justify-start gap-2.5' : '',
-            viewMode === 'list' ? 'grid-cols-1' : ''
+            viewMode === 'grid' && !appStore.isWorkMode ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : '',
+            viewMode === 'grid' && appStore.isWorkMode ? 'flex flex-wrap content-start items-start justify-start gap-1.5' : '',
+            viewMode === 'list' ? 'grid grid-cols-1' : ''
           ]"
         >
           <ShortcutCard 
-            v-for="shortcut in filteredShortcuts" 
+            v-for="(shortcut, shortcutIndex) in filteredShortcuts" 
             :key="shortcut.id"
             :shortcut="shortcut"
             :batch-mode="isBatchMode"
             :selected="selectedIds.has(shortcut.id)"
             :work-mode="appStore.isWorkMode"
+            :animation-index="shortcutIndex"
             :feedback-status="triggerFeedback?.shortcutId === shortcut.id ? triggerFeedback.status : undefined"
             @trigger="handleTrigger"
             @edit="handleEdit"
@@ -679,6 +707,7 @@ onMounted(async () => {
 
     <SettingsModal 
       :show="showSettings" 
+      :compact="appStore.isWorkMode"
       @close="showSettings = false" 
     />
 

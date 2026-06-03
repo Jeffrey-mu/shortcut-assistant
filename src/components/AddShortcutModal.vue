@@ -246,23 +246,23 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300">
-    <div class="flex max-h-[min(88vh,760px)] w-[min(94vw,560px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in duration-200 transition-colors duration-300 dark:border-slate-700 dark:bg-slate-900">
+  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm transition-colors duration-300">
+    <div class="flex max-h-[min(88vh,760px)] w-[min(94vw,560px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[color:var(--light-panel-strong)] shadow-2xl animate-in fade-in zoom-in duration-200 transition-colors duration-300 dark:border-white/10 dark:bg-[#090d19] dark:shadow-[0_24px_80px_rgba(0,0,0,0.62)]">
       <!-- 头部 -->
-      <div class="shrink-0 border-b border-slate-200 bg-slate-50 px-5 py-4 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/50">
+      <div class="shrink-0 border-b border-slate-200 bg-[image:var(--light-header-bg)] px-5 py-4 transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035]">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-slate-800 dark:text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
           <button @click="$emit('close')" class="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
             <X :size="20" />
           </button>
         </div>
-        <div class="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-white/70 p-1 dark:border-slate-800 dark:bg-slate-950/60">
+        <div class="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-[color:var(--light-panel)] p-1 dark:border-white/10 dark:bg-black/24">
           <button
             v-for="tab in tabs"
             :key="tab.id"
             @click="activeTab = tab.id"
             class="flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all"
-            :style="activeTab === tab.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' } : undefined"
+            :style="activeTab === tab.id ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent-contrast)' } : undefined"
             :class="activeTab === tab.id ? 'shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
             :title="tab.label"
           >
@@ -282,7 +282,7 @@ onUnmounted(() => {
               v-model="name"
               type="text" 
               placeholder="例如：微信截屏、播放掌声" 
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              class="w-full bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
           <div>
@@ -298,7 +298,7 @@ onUnmounted(() => {
                 v-model="iconSearch"
                 type="text"
                 placeholder="搜索图标..."
-                class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                class="flex-1 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
             <div class="grid grid-cols-8 gap-2 max-h-36 overflow-y-auto pr-1">
@@ -307,7 +307,7 @@ onUnmounted(() => {
                 :key="option.name"
                 @click="icon = option.name"
                 class="aspect-square rounded-lg border flex items-center justify-center transition-all hover:scale-105"
-                :class="icon === option.name ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-500'"
+                :class="icon === option.name ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/20' : 'bg-[color:var(--light-panel)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-blue-500'"
                 :title="option.label"
               >
                 <component :is="option.component" class="w-5 h-5" />
@@ -335,14 +335,14 @@ onUnmounted(() => {
                 <button
                   @click="switchRecordingMode('combo')"
                   class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
-                  :class="recordingMode === 'combo' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
+                  :class="recordingMode === 'combo' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
                 >
                   组合录入
                 </button>
                 <button
                   @click="switchRecordingMode('separate')"
                   class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
-                  :class="recordingMode === 'separate' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
+                  :class="recordingMode === 'separate' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
                 >
                   分开录入
                 </button>
@@ -350,7 +350,7 @@ onUnmounted(() => {
               <div class="flex gap-2">
                 <div 
                   @click="startRecordingTarget"
-                  class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between min-w-0"
+                  class="flex-1 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between min-w-0"
                   :class="{ 'border-blue-500 ring-2 ring-blue-500/20': isRecording }"
                 >
                   <span class="truncate" :class="{'text-slate-400 dark:text-slate-500': isTargetInvalid}">{{ targetPath || (recordingMode === 'separate' ? '点击后分开按键...' : '点击录制目标快捷键...') }}</span>
@@ -368,14 +368,14 @@ onUnmounted(() => {
             </div>
 
             <!-- 手动输入模式 -->
-            <div v-else class="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 transition-colors duration-300">
+            <div v-else class="space-y-3 p-4 bg-[color:var(--light-panel)] dark:bg-white/[0.045] rounded-xl border border-slate-200 dark:border-white/10 transition-colors duration-300">
               <div class="flex flex-wrap gap-2">
               <button 
                 v-for="(_, mod) in manualModifiers" 
                 :key="mod"
                 @click="manualModifiers[mod as keyof typeof manualModifiers] = !manualModifiers[mod as keyof typeof manualModifiers]; updateManualShortcut()"
                 class="px-3 py-1.5 rounded-md text-xs font-bold transition-all border"
-                :class="manualModifiers[mod as keyof typeof manualModifiers] ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'"
+                :class="manualModifiers[mod as keyof typeof manualModifiers] ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:bg-white/[0.08]'"
               >
                 {{ mod }}
               </button>
@@ -384,7 +384,7 @@ onUnmounted(() => {
                 <select 
                   v-model="manualKey" 
                   @change="updateManualShortcut"
-                  class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
+                  class="flex-1 bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
                 >
                   <option value="">选择按键...</option>
                   <option v-for="k in commonKeys" :key="k" :value="k">{{ k }}</option>
@@ -403,7 +403,7 @@ onUnmounted(() => {
               :key="type"
               @click="triggerType = type as any"
               class="px-2 py-2 rounded-lg border text-xs transition-all"
-              :class="triggerType === type ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:border-slate-600'"
+              :class="triggerType === type ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
             >
               {{ type === 'instant' ? '立即' : type === 'delay' ? '延时' : type === 'interval' ? '循环' : '定时' }}
             </button>
@@ -411,19 +411,19 @@ onUnmounted(() => {
 
           <div v-if="triggerType === 'delay'" class="flex items-center gap-3">
             <span class="text-sm text-slate-600 dark:text-slate-400">延时秒数</span>
-            <input v-model.number="delaySeconds" type="number" min="1" class="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
+            <input v-model.number="delaySeconds" type="number" min="1" class="w-20 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
             <span class="text-sm text-slate-500">秒</span>
           </div>
 
           <div v-if="triggerType === 'interval'" class="flex items-center gap-3">
             <span class="text-sm text-slate-600 dark:text-slate-400">循环间隔</span>
-            <input v-model.number="intervalSeconds" type="number" min="1" class="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
+            <input v-model.number="intervalSeconds" type="number" min="1" class="w-20 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
             <span class="text-sm text-slate-500">秒</span>
           </div>
 
           <div v-if="triggerType === 'timing'" class="flex items-center gap-3">
             <span class="text-sm text-slate-600 dark:text-slate-400">触发时间</span>
-            <input v-model="timingValue" type="time" class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
+            <input v-model="timingValue" type="time" class="flex-1 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
           </div>
         </div>
 
@@ -458,10 +458,10 @@ onUnmounted(() => {
       </div>
 
       <!-- 底部 -->
-      <div class="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-slate-800 dark:bg-slate-800/50 dark:shadow-[0_-12px_28px_rgba(0,0,0,0.18)]">
+      <div class="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-[image:var(--light-header-bg)] px-5 py-4 shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035] dark:shadow-[0_-12px_28px_rgba(0,0,0,0.28)]">
         <button 
           @click="$emit('close')"
-          class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"
+          class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.075] rounded-lg transition-colors text-sm font-medium"
         >
           取消
         </button>
