@@ -8,7 +8,7 @@
 
 ## 🌟 核心特性
 
-- **🚀 快捷触发**：Windows 端使用 `SendInput` 模拟键盘按键，macOS 端通过系统事件触发组合键，适合 OBS、直播工具、常用软件动作等场景。
+- **🚀 快捷触发**：Windows 端使用 `SendInput` 模拟键盘按键，macOS 端按键分流使用 `CGEvent` / `System Events`，适合 OBS、直播工具、常用软件动作等场景。
 - **📺 直播控制台主界面**：去掉传统左侧导航，主页面以直播操作台方式组织搜索、筛选、导入导出、视图切换和添加动作。
 - **💻 沉浸式直播模式**：一键进入轻量悬浮按键面板。支持窗口置顶（Always on Top）、透明度调节、卡片尺寸调节，边播边点更顺手。
 - **⏱️ 多样化触发引擎**：
@@ -32,12 +32,38 @@
 ## 🛠️ 技术栈
 
 - **桌面端底座**: [Tauri 2.0](https://v2.tauri.app/)
-- **系统层交互**: Rust + Windows `SendInput` / macOS `osascript` 系统事件模拟
+- **系统层交互**: Rust + Windows `SendInput` / macOS `CGEvent` HID 事件与 `System Events` 导航键兼容模式
 - **前端框架**: [Vue 3](https://vuejs.org/) (Composition API) + [Vite](https://vitejs.dev/)
 - **状态管理**: [Pinia](https://pinia.vuejs.org/)
 - **UI 与样式**: [Tailwind CSS v4](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
 - **拖拽交互**: [SortableJS](https://sortablejs.github.io/Sortable/)
 - **持久化与插件**: `@tauri-apps/plugin-fs`、`plugin-dialog`、`plugin-autostart` 等
+
+---
+
+## 🏗️ 架构图
+
+```mermaid
+flowchart TD
+    User["用户点击动作卡片 / 定时任务触发"] --> Vue["Vue 3 UI"]
+    Vue --> Manager["ShortcutManager<br/>串行按键队列"]
+    Manager --> TauriInvoke["Tauri invoke<br/>simulate_keys(keys)"]
+    TauriInvoke --> Parser["Rust 快捷键解析<br/>修饰键 + 主按键"]
+
+    Parser --> Platform{"运行平台"}
+    Platform -->|Windows| WinSend["SendInput<br/>Scan Code + 修饰键时序"]
+    Platform -->|macOS| MacRoute{"主按键类型"}
+
+    MacRoute -->|数字 / 字母 / 功能键| MacHid["CGEvent HID<br/>OBS / 截屏 / 常规组合键"]
+    MacRoute -->|方向键 / 导航键| MacLegacy["System Events key code<br/>音乐播放器方向键兼容"]
+
+    WinSend --> Target["目标应用<br/>OBS / 音乐 / 截屏 / 其他软件"]
+    MacHid --> Target
+    MacLegacy --> Target
+
+    Store["Pinia Store<br/>快捷键配置"] --> Vue
+    Store --> Persist["AppData config.json<br/>导入 / 导出"]
+```
 
 ---
 
