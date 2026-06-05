@@ -10,10 +10,12 @@ export interface ShortcutTarget {
 }
 
 export interface ShortcutTrigger {
-  type: 'instant' | 'timing' | 'delay' | 'interval';
+  type: 'instant' | 'timing' | 'delay' | 'interval' | 'random';
   timing?: string;
   delay?: number;
   interval?: number;
+  randomMin?: number;
+  randomMax?: number;
   loopCount?: number;
 }
 

@@ -7,6 +7,7 @@ import {
   Clock, 
   Timer, 
   Repeat,
+  Shuffle,
   MoreVertical,
   Check,
   CircleCheck,
@@ -372,16 +373,18 @@ onUnmounted(() => {
                    backgroundColor: `color-mix(in srgb, ${shortcut.color} ${isDarkTheme ? 20 : 14}%, transparent)`,
                    borderColor: `color-mix(in srgb, ${shortcut.color} 38%, transparent)`
                  }"
-                 :title="shortcut.trigger.type === 'timing' ? '定时' : shortcut.trigger.type === 'delay' ? '延时' : '循环'">
+                 :title="shortcut.trigger.type === 'timing' ? '定时' : shortcut.trigger.type === 'delay' ? '延时' : shortcut.trigger.type === 'random' ? '随机' : '循环'">
               <Clock v-if="shortcut.trigger.type === 'timing'" :size="8" />
               <Timer v-if="shortcut.trigger.type === 'delay'" :size="8" />
               <Repeat v-if="shortcut.trigger.type === 'interval'" :size="8" />
+              <Shuffle v-if="shortcut.trigger.type === 'random'" :size="8" />
             </div>
             <span v-else-if="shortcut.trigger.type !== 'instant' && !workMode" class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs shrink-0">
               <Clock v-if="shortcut.trigger.type === 'timing'" :size="12" />
               <Timer v-if="shortcut.trigger.type === 'delay'" :size="12" />
               <Repeat v-if="shortcut.trigger.type === 'interval'" :size="12" />
-              {{ shortcut.trigger.type === 'timing' ? '定时' : shortcut.trigger.type === 'delay' ? '延时' : '循环' }}
+              <Shuffle v-if="shortcut.trigger.type === 'random'" :size="12" />
+              {{ shortcut.trigger.type === 'timing' ? '定时' : shortcut.trigger.type === 'delay' ? '延时' : shortcut.trigger.type === 'random' ? '随机' : '循环' }}
             </span>
           </div>
         </div>

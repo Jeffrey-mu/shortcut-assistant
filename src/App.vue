@@ -7,7 +7,7 @@ import SettingsModal from "./components/SettingsModal.vue";
 import AboutModal from "./components/AboutModal.vue";
 import { useShortcutStore, type Shortcut } from "./stores/shortcut";
 import { useAppStore } from "./stores/app";
-import { ShortcutManager } from "./services/shortcutManager";
+import { ShortcutManager, type ShortcutTriggerFeedback } from "./services/shortcutManager";
 import { CheckCircle2, CircleCheck, CircleX, Download, Grid, Info, List as ListIcon, Loader2, Maximize2, Minimize2, Palette, Pin, Plus, Radio, Search, Settings, Upload, XCircle } from "lucide-vue-next";
 import Sortable from "sortablejs";
 import { save, open } from "@tauri-apps/plugin-dialog";
@@ -44,6 +44,7 @@ const triggerFeedback = ref<{
   message: string;
 } | null>(null);
 let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
+let feedbackIdSeed = 0;
 
 const filteredShortcuts = computed(() => {
   return store.shortcuts.filter((s) => {
@@ -70,6 +71,7 @@ const groupedShortcuts = computed(() => {
 const activePalette = computed(() => getThemePalette(store.settings.accentTheme));
 const enabledCount = computed(() => store.shortcuts.filter((shortcut) => shortcut.enabled).length);
 const disabledCount = computed(() => store.shortcuts.length - enabledCount.value);
+const liveRandomCount = computed(() => store.shortcuts.filter((shortcut) => shortcut.enabled && shortcut.trigger.type === 'random').length);
 const filterOptions = computed(() => [
   { id: "all", label: "全部", count: store.shortcuts.length, icon: Radio },
   { id: "enabled", label: "启用", count: enabledCount.value, icon: CircleCheck },
@@ -197,8 +199,21 @@ const showTriggerFeedback = (feedback: NonNullable<typeof triggerFeedback.value>
   }
 };
 
+const createFeedbackId = () => Date.now() + feedbackIdSeed++;
+
+const handleScheduledFeedback = (feedback: ShortcutTriggerFeedback) => {
+  showTriggerFeedback({
+    id: createFeedbackId(),
+    status: feedback.status,
+    shortcutId: feedback.shortcut.id,
+    name: feedback.shortcut.name,
+    keys: feedback.shortcut.target.path,
+    message: feedback.message,
+  }, feedback.status === "error" ? 2600 : 1800);
+};
+
 const handleTrigger = async (shortcut: Shortcut) => {
-  const feedbackId = Date.now();
+  const feedbackId = createFeedbackId();
   showTriggerFeedback({
     id: feedbackId,
     status: "running",
@@ -207,6 +222,8 @@ const handleTrigger = async (shortcut: Shortcut) => {
     keys: shortcut.target.path,
     message: shortcut.trigger.type === "delay" && shortcut.trigger.delay
       ? `等待 ${shortcut.trigger.delay} 秒后发送`
+      : shortcut.trigger.type === "random"
+        ? "正在发送随机触发按键"
       : "正在发送按键",
   });
 
@@ -341,8 +358,11 @@ const handleImport = async () => {
 };
 
 // 监听快捷键列表变化，重新初始化定时任务
-watch(() => store.shortcuts.map(s => ({ id: s.id, enabled: s.enabled, trigger: s.trigger })), () => {
-  shortcutManager.initTasks();
+watch([
+  () => store.shortcuts.map(s => ({ id: s.id, enabled: s.enabled, trigger: s.trigger })),
+  () => appStore.isWorkMode,
+], () => {
+  shortcutManager.initTasks({ liveMode: appStore.isWorkMode });
 }, { deep: true });
 
 const initSortable = () => {
@@ -400,7 +420,8 @@ watch([viewMode, isGroupedByColor], () => {
 
 onMounted(async () => {
   await store.loadFromLocal();
-  await shortcutManager.initTasks();
+  shortcutManager.setFeedbackListener(handleScheduledFeedback);
+  await shortcutManager.initTasks({ liveMode: appStore.isWorkMode });
   nextTick(() => {
     initSortable();
   });
@@ -426,6 +447,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   cancelWorkBackgroundDrag();
+  shortcutManager.setFeedbackListener(undefined);
 });
 </script>
 
@@ -466,7 +488,7 @@ onUnmounted(() => {
           <XCircle v-else :size="appStore.isWorkMode ? 13 : 15" class="shrink-0" />
           <div class="min-w-0">
             <div class="truncate font-semibold" :class="appStore.isWorkMode ? 'text-[11px] leading-4' : 'text-xs leading-4'">
-              {{ triggerFeedback.status === 'running' ? triggerFeedback.message : triggerFeedback.status === 'success' ? '已发送' : '发送失败' }}
+              {{ triggerFeedback.message }}
             </div>
             <div class="truncate opacity-75" :class="appStore.isWorkMode ? 'text-[10px] leading-3' : 'text-[11px] leading-4'">
               {{ triggerFeedback.name }}
@@ -517,6 +539,10 @@ onUnmounted(() => {
           直播模式
         </span>
         <span class="opacity-70">{{ filteredShortcuts.length }} 个</span>
+        <template v-if="liveRandomCount">
+          <span class="opacity-40">|</span>
+          <span class="opacity-80">随机 {{ liveRandomCount }}</span>
+        </template>
         <template v-if="triggerFeedback">
           <span class="opacity-40">|</span>
           <span class="truncate opacity-80">

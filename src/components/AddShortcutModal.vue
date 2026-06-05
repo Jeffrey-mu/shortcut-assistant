@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { X, Keyboard, Type, Clock, Palette } from 'lucide-vue-next';
-import type { Shortcut } from '../stores/shortcut';
+import type { Shortcut, ShortcutTrigger } from '../stores/shortcut';
 import { DEFAULT_SHORTCUT_ICON, getShortcutIcon, iconOptions } from '../data/iconOptions';
 
 const props = defineProps<{
@@ -16,9 +16,11 @@ const icon = ref(DEFAULT_SHORTCUT_ICON);
 const iconSearch = ref('');
 const color = ref('#3B82F6');
 const targetPath = ref('');
-const triggerType = ref<'instant' | 'timing' | 'delay' | 'interval'>('instant');
+const triggerType = ref<ShortcutTrigger['type']>('instant');
 const delaySeconds = ref(3);
 const intervalSeconds = ref(5);
+const randomMinSeconds = ref(5);
+const randomMaxSeconds = ref(30);
 const timingValue = ref('');
 const isRecording = ref(false);
 const isManualMode = ref(false); // 新增：是否为手动输入模式
@@ -40,6 +42,11 @@ const resetForm = () => {
   color.value = '#3B82F6';
   targetPath.value = '';
   triggerType.value = 'instant';
+  delaySeconds.value = 3;
+  intervalSeconds.value = 5;
+  randomMinSeconds.value = 5;
+  randomMaxSeconds.value = 30;
+  timingValue.value = '';
   separateKeys.value = [];
   recordingMode.value = 'combo';
 };
@@ -56,6 +63,8 @@ watch(() => props.editShortcut, (newVal) => {
     triggerType.value = newVal.trigger.type;
     delaySeconds.value = newVal.trigger.delay || 3;
     intervalSeconds.value = newVal.trigger.interval || 5;
+    randomMinSeconds.value = newVal.trigger.randomMin || 5;
+    randomMaxSeconds.value = newVal.trigger.randomMax || Math.max(randomMinSeconds.value, 30);
     timingValue.value = newVal.trigger.timing || '';
   } else {
     resetForm();
@@ -210,8 +219,15 @@ const updateManualShortcut = () => {
   }
 };
 
+const isRandomRangeInvalid = computed(() => {
+  if (triggerType.value !== 'random') return false;
+  return randomMinSeconds.value < 1
+    || randomMaxSeconds.value < 1
+    || randomMinSeconds.value > randomMaxSeconds.value;
+});
+
 const handleSave = () => {
-  if (!name.value || isTargetInvalid.value) return;
+  if (!name.value || isTargetInvalid.value || isRandomRangeInvalid.value) return;
   stopAllRecording();
   
   emit('save', {
@@ -224,6 +240,8 @@ const handleSave = () => {
       type: triggerType.value,
       delay: triggerType.value === 'delay' ? delaySeconds.value : undefined,
       interval: triggerType.value === 'interval' ? intervalSeconds.value : undefined,
+      randomMin: triggerType.value === 'random' ? randomMinSeconds.value : undefined,
+      randomMax: triggerType.value === 'random' ? randomMaxSeconds.value : undefined,
       timing: triggerType.value === 'timing' ? timingValue.value : undefined,
     }
   });
@@ -397,15 +415,15 @@ onUnmounted(() => {
         <!-- 触发方式 -->
         <div v-else-if="activeTab === 'trigger'" class="space-y-4">
           <label class="block text-sm font-medium text-slate-600 dark:text-slate-400">触发方式</label>
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid grid-cols-5 gap-2">
             <button 
-              v-for="type in ['instant', 'delay', 'interval', 'timing']" 
+              v-for="type in ['instant', 'delay', 'interval', 'random', 'timing']" 
               :key="type"
               @click="triggerType = type as any"
               class="px-2 py-2 rounded-lg border text-xs transition-all"
               :class="triggerType === type ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
             >
-              {{ type === 'instant' ? '立即' : type === 'delay' ? '延时' : type === 'interval' ? '循环' : '定时' }}
+              {{ type === 'instant' ? '立即' : type === 'delay' ? '延时' : type === 'interval' ? '循环' : type === 'random' ? '随机' : '定时' }}
             </button>
           </div>
 
@@ -419,6 +437,27 @@ onUnmounted(() => {
             <span class="text-sm text-slate-600 dark:text-slate-400">循环间隔</span>
             <input v-model.number="intervalSeconds" type="number" min="1" class="w-20 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
             <span class="text-sm text-slate-500">秒</span>
+          </div>
+
+          <div v-if="triggerType === 'random'" class="space-y-2 rounded-xl border border-slate-200 bg-[color:var(--light-panel)] p-3 dark:border-white/10 dark:bg-white/[0.045]">
+            <div class="grid grid-cols-2 gap-3">
+              <label class="space-y-1">
+                <span class="block text-xs font-semibold text-slate-500 dark:text-slate-400">最小间隔</span>
+                <div class="flex items-center gap-2">
+                  <input v-model.number="randomMinSeconds" type="number" min="1" class="w-full bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
+                  <span class="text-sm text-slate-500">秒</span>
+                </div>
+              </label>
+              <label class="space-y-1">
+                <span class="block text-xs font-semibold text-slate-500 dark:text-slate-400">最大间隔</span>
+                <div class="flex items-center gap-2">
+                  <input v-model.number="randomMaxSeconds" type="number" min="1" class="w-full bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
+                  <span class="text-sm text-slate-500">秒</span>
+                </div>
+              </label>
+            </div>
+            <p v-if="isRandomRangeInvalid" class="text-xs font-medium text-red-500 dark:text-red-300">最大间隔必须大于或等于最小间隔。</p>
+            <p v-else class="text-xs text-slate-500 dark:text-slate-400">进入直播模式后，会在该范围内随机取间隔并自动触发。</p>
           </div>
 
           <div v-if="triggerType === 'timing'" class="flex items-center gap-3">
@@ -468,7 +507,7 @@ onUnmounted(() => {
         <button 
           @click="handleSave"
           class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-          :disabled="!name || isTargetInvalid"
+          :disabled="!name || isTargetInvalid || isRandomRangeInvalid"
         >
           保存配置
         </button>

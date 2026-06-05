@@ -1,11 +1,18 @@
 import { useShortcutStore, type Shortcut } from '../stores/shortcut';
 import { invoke } from '@tauri-apps/api/core';
 
+export interface ShortcutTriggerFeedback {
+  status: 'running' | 'success' | 'error';
+  shortcut: Shortcut;
+  message: string;
+}
+
 export class ShortcutManager {
   private static instance: ShortcutManager;
   private store = useShortcutStore();
   private timers: Map<string, any> = new Map();
   private keySendQueue: Promise<void> = Promise.resolve();
+  private feedbackListener?: (feedback: ShortcutTriggerFeedback) => void;
 
   private constructor() {}
 
@@ -16,11 +23,16 @@ export class ShortcutManager {
     return ShortcutManager.instance;
   }
 
+  public setFeedbackListener(listener?: (feedback: ShortcutTriggerFeedback) => void) {
+    this.feedbackListener = listener;
+  }
+
   /**
    * 初始化所有任务（如定时任务）
    */
-  public async initTasks() {
+  public async initTasks(options: { liveMode?: boolean } = {}) {
     this.clearTimers();
+    if (!options.liveMode) return;
     
     for (const shortcut of this.store.shortcuts) {
       if (shortcut.enabled) {
@@ -29,6 +41,8 @@ export class ShortcutManager {
           this.setupTimingTrigger(shortcut);
         } else if (shortcut.trigger.type === 'interval') {
           this.setupIntervalTrigger(shortcut);
+        } else if (shortcut.trigger.type === 'random') {
+          this.setupRandomTrigger(shortcut);
         }
       }
     }
@@ -51,7 +65,7 @@ export class ShortcutManager {
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       if (timeStr === shortcut.trigger.timing) {
-        this.doExecute(shortcut);
+        this.executeScheduledShortcut(shortcut, '定时触发发送中', '定时触发已发送');
       }
     };
 
@@ -63,9 +77,51 @@ export class ShortcutManager {
     if (!shortcut.trigger.interval) return;
 
     const timer = setInterval(() => {
-      this.doExecute(shortcut);
+      this.executeScheduledShortcut(shortcut, '循环触发发送中', '循环触发已发送');
     }, shortcut.trigger.interval * 1000);
     this.timers.set(`interval-${shortcut.id}`, timer);
+  }
+
+  private setupRandomTrigger(shortcut: Shortcut) {
+    const min = Math.max(1, Math.floor(shortcut.trigger.randomMin || 1));
+    const max = Math.max(min, Math.floor(shortcut.trigger.randomMax || min));
+
+    const scheduleNext = () => {
+      const delaySeconds = this.getRandomSeconds(min, max);
+      const timer = setTimeout(async () => {
+        if (!this.timers.has(`random-${shortcut.id}`)) return;
+        await this.executeScheduledShortcut(shortcut, '随机触发发送中', '随机触发已发送');
+        if (this.timers.has(`random-${shortcut.id}`)) {
+          scheduleNext();
+        }
+      }, delaySeconds * 1000);
+      this.timers.set(`random-${shortcut.id}`, timer);
+    };
+
+    scheduleNext();
+  }
+
+  private getRandomSeconds(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  private async executeScheduledShortcut(shortcut: Shortcut, runningMessage: string, successMessage: string) {
+    this.emitFeedback({ status: 'running', shortcut, message: runningMessage });
+    try {
+      await this.doExecute(shortcut);
+      this.emitFeedback({ status: 'success', shortcut, message: successMessage });
+    } catch (error) {
+      console.error(`${runningMessage}: ${shortcut.name}`, error);
+      this.emitFeedback({
+        status: 'error',
+        shortcut,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private emitFeedback(feedback: ShortcutTriggerFeedback) {
+    this.feedbackListener?.(feedback);
   }
 
   /**
