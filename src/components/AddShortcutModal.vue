@@ -264,17 +264,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm transition-colors duration-300">
-    <div class="flex max-h-[min(88vh,760px)] w-[min(94vw,560px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[color:var(--light-panel-strong)] shadow-2xl animate-in fade-in zoom-in duration-200 transition-colors duration-300 dark:border-white/10 dark:bg-[#090d19] dark:shadow-[0_24px_80px_rgba(0,0,0,0.62)]">
+  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md transition-colors duration-300 dark:bg-black/76">
+    <div class="modal-shell flex max-h-[min(88vh,760px)] w-[min(94vw,600px)] flex-col overflow-hidden rounded-2xl animate-in fade-in zoom-in duration-200 transition-colors duration-300">
       <!-- 头部 -->
-      <div class="shrink-0 border-b border-slate-200 bg-[image:var(--light-header-bg)] px-5 py-4 transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035]">
+      <div class="tool-header shrink-0 px-5 py-4 transition-colors duration-300">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-slate-800 dark:text-white">{{ editShortcut ? '编辑动作' : '添加动作' }}</h2>
           <button @click="$emit('close')" class="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
             <X :size="20" />
           </button>
         </div>
-        <div class="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-[color:var(--light-panel)] p-1 dark:border-white/10 dark:bg-black/24">
+        <div class="segmented-control mt-4 grid grid-cols-4">
           <button
             v-for="tab in tabs"
             :key="tab.id"
@@ -291,7 +291,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 内容 -->
-      <div class="min-h-0 flex-1 overflow-y-auto p-5">
+      <div class="app-scrollbar min-h-0 flex-1 overflow-y-auto p-5">
         <!-- 基本信息 -->
         <div v-if="activeTab === 'basic'" class="space-y-4">
           <div>
@@ -300,7 +300,7 @@ onUnmounted(() => {
               v-model="name"
               type="text" 
               placeholder="例如：微信截屏、播放掌声" 
-              class="w-full bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              class="form-field w-full px-4 py-2 text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500"
             />
           </div>
           <div>
@@ -316,16 +316,17 @@ onUnmounted(() => {
                 v-model="iconSearch"
                 type="text"
                 placeholder="搜索图标..."
-                class="flex-1 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                class="form-field flex-1 px-4 py-2 text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500"
               />
             </div>
-            <div class="grid grid-cols-8 gap-2 max-h-36 overflow-y-auto pr-1">
+            <div class="app-scrollbar grid max-h-36 grid-cols-8 gap-2 overflow-y-auto pr-1">
               <button
                 v-for="option in filteredIconOptions"
                 :key="option.name"
                 @click="icon = option.name"
                 class="aspect-square rounded-lg border flex items-center justify-center transition-all hover:scale-105"
-                :class="icon === option.name ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/20' : 'bg-[color:var(--light-panel)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-blue-500'"
+                :class="icon === option.name ? 'text-slate-950 shadow-md' : 'bg-white/52 dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-[color:var(--accent)]'"
+                :style="icon === option.name ? { background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', borderColor: 'var(--accent)' } : undefined"
                 :title="option.label"
               >
                 <component :is="option.component" class="w-5 h-5" />
@@ -353,14 +354,16 @@ onUnmounted(() => {
                 <button
                   @click="switchRecordingMode('combo')"
                   class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
-                  :class="recordingMode === 'combo' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
+                  :class="recordingMode === 'combo' ? 'text-slate-950 shadow-sm' : 'bg-white/50 dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-white/80 dark:hover:border-white/20'"
+                  :style="recordingMode === 'combo' ? { background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', borderColor: 'var(--accent)' } : undefined"
                 >
                   组合录入
                 </button>
                 <button
                   @click="switchRecordingMode('separate')"
                   class="px-3 py-2 rounded-lg border text-xs font-medium transition-all"
-                  :class="recordingMode === 'separate' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[color:var(--light-panel-strong)] dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-[color:var(--light-panel-hover)] dark:hover:border-white/20'"
+                  :class="recordingMode === 'separate' ? 'text-slate-950 shadow-sm' : 'bg-white/50 dark:bg-white/[0.055] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-white/80 dark:hover:border-white/20'"
+                  :style="recordingMode === 'separate' ? { background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', borderColor: 'var(--accent)' } : undefined"
                 >
                   分开录入
                 </button>
@@ -368,8 +371,8 @@ onUnmounted(() => {
               <div class="flex gap-2">
                 <div 
                   @click="startRecordingTarget"
-                  class="flex-1 bg-[color:var(--light-panel)] dark:bg-white/[0.055] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white font-mono cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-between min-w-0"
-                  :class="{ 'border-blue-500 ring-2 ring-blue-500/20': isRecording }"
+                  class="form-field flex min-w-0 flex-1 cursor-pointer items-center justify-between px-4 py-2 font-mono text-slate-900 transition-all hover:border-[color:var(--accent)] dark:text-white"
+                  :class="{ 'ring-2 ring-[color:var(--accent)]/20': isRecording }"
                 >
                   <span class="truncate" :class="{'text-slate-400 dark:text-slate-500': isTargetInvalid}">{{ targetPath || (recordingMode === 'separate' ? '点击后分开按键...' : '点击录制目标快捷键...') }}</span>
                   <Keyboard :size="18" class="text-slate-400 dark:text-slate-500 shrink-0" />
@@ -497,7 +500,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 底部 -->
-      <div class="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-[image:var(--light-header-bg)] px-5 py-4 shadow-[0_-12px_28px_rgba(15,23,42,0.06)] transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.035] dark:shadow-[0_-12px_28px_rgba(0,0,0,0.28)]">
+      <div class="tool-header flex shrink-0 justify-end gap-3 border-t px-5 py-4 transition-colors duration-300">
         <button 
           @click="$emit('close')"
           class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.075] rounded-lg transition-colors text-sm font-medium"
@@ -506,7 +509,8 @@ onUnmounted(() => {
         </button>
         <button 
           @click="handleSave"
-          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+          class="primary-action disabled:pointer-events-none disabled:opacity-50"
+          :style="{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))' }"
           :disabled="!name || isTargetInvalid || isRandomRangeInvalid"
         >
           保存配置

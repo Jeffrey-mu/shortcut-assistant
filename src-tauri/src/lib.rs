@@ -561,6 +561,11 @@ pub fn run() {
                     let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
                 }
 
+                #[cfg(debug_assertions)]
+                if let Some(window) = app.get_webview_window("main") {
+                    window.open_devtools();
+                }
+
                 let show_i = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
                 let quit_i = MenuItem::with_id(app, "quit", "退出应用", true, None::<&str>)?;
                 let menu = Menu::with_items(app, &[&show_i, &quit_i])?;

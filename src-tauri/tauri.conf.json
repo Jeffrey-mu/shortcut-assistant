@@ -18,6 +18,7 @@
         "height": 600,
         "transparent": true,
         "backgroundColor": "#00000000",
+        "devtools": true,
         "decorations": false
       }
     ],

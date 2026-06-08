@@ -19,10 +19,10 @@ const openLink = async (url: string) => {
 
 <template>
   <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm transition-colors duration-300" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-md transition-colors duration-300 dark:bg-black/76" @click="emit('close')"></div>
     
-    <div class="relative bg-[color:var(--light-panel-strong)] dark:bg-[#090d19] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md shadow-2xl dark:shadow-[0_24px_80px_rgba(0,0,0,0.62)] overflow-hidden animate-in zoom-in-95 duration-200 transition-colors duration-300">
-      <div class="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-[image:var(--light-header-bg)] dark:bg-white/[0.035] transition-colors duration-300">
+    <div class="modal-shell relative w-full max-w-md overflow-hidden rounded-2xl animate-in zoom-in-95 duration-200 transition-colors duration-300">
+      <div class="tool-header flex items-center justify-between px-6 py-4 transition-colors duration-300">
         <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <Info :size="20" class="text-blue-500 dark:text-blue-400" />
           关于软件
@@ -32,9 +32,10 @@ const openLink = async (url: string) => {
         </button>
       </div>
 
-      <div class="p-8 flex flex-col items-center text-center">
-        <div class="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 mb-6 rotate-3">
-          <span class="text-3xl font-bold text-white italic">-S-</span>
+      <div class="flex flex-col items-center p-8 text-center">
+        <div class="mb-6 flex h-24 w-24 rotate-3 items-center justify-center rounded-2xl border border-white/40 text-slate-950 shadow-[0_22px_48px_color-mix(in_srgb,var(--accent)_24%,transparent)] dark:border-white/10"
+             :style="{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))' }">
+          <span class="text-3xl font-black italic tracking-[-0.08em]">SA</span>
         </div>
         
         <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">快捷键管理助手</h3>
@@ -55,7 +56,7 @@ const openLink = async (url: string) => {
         </div>
       </div>
 
-      <div class="px-6 py-4 bg-[image:var(--light-header-bg)] dark:bg-white/[0.035] border-t border-slate-200 dark:border-white/10 text-center transition-colors duration-300">
+      <div class="tool-header border-t px-6 py-4 text-center transition-colors duration-300">
         <p class="text-xs text-slate-400 dark:text-slate-500">&copy; 2026 Jeffrey. All rights reserved.</p>
       </div>
     </div>

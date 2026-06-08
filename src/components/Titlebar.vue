@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
-import { Minus, Minimize2, Square, X } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+import { Minimize2, Minus, Square, X } from 'lucide-vue-next';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useAppStore } from '../stores/app';
 import { isTauriRuntime } from '../utils/browserGuards';
 
 const appStore = useAppStore();
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-const isMaximized = ref(false);
-let unlistenResize: (() => void) | null = null;
+const isWindowExpanded = ref(false);
 
-const syncMaximizedState = async () => {
+const syncExpandedState = async () => {
   if (!isTauriRuntime()) return;
   try {
-    isMaximized.value = await getCurrentWindow().isMaximized();
+    const appWindow = getCurrentWindow();
+    isWindowExpanded.value = (await appWindow.isMaximized()) || (await appWindow.isFullscreen());
   } catch (error) {
-    console.error('Failed to sync maximize state:', error);
+    console.error('Failed to sync window expanded state:', error);
   }
 };
 
@@ -26,16 +26,24 @@ const handleMinimize = async () => {
 
 const handleMaximize = async () => {
   if (!isTauriRuntime()) {
-    isMaximized.value = !isMaximized.value;
+    isWindowExpanded.value = !isWindowExpanded.value;
     return;
   }
-  const appWindow = getCurrentWindow();
-  if (await appWindow.isMaximized()) {
-    await appWindow.unmaximize();
-  } else {
-    await appWindow.maximize();
+  try {
+    const appWindow = getCurrentWindow();
+    if (isWindowExpanded.value) {
+      if (await appWindow.isFullscreen()) {
+        await appWindow.setFullscreen(false);
+      }
+      await appWindow.unmaximize();
+      isWindowExpanded.value = false;
+    } else {
+      await appWindow.maximize();
+      isWindowExpanded.value = true;
+    }
+  } catch (error) {
+    console.error('Failed to toggle window fullscreen/maximize:', error);
   }
-  await syncMaximizedState();
 };
 
 const handleClose = async () => {
@@ -44,18 +52,7 @@ const handleClose = async () => {
 };
 
 onMounted(async () => {
-  await syncMaximizedState();
-  if (!isTauriRuntime()) return;
-  try {
-    unlistenResize = await getCurrentWindow().onResized(syncMaximizedState);
-  } catch (error) {
-    console.error('Failed to listen window resize:', error);
-  }
-});
-
-onUnmounted(() => {
-  unlistenResize?.();
-  unlistenResize = null;
+  await syncExpandedState();
 });
 </script>
 
@@ -86,7 +83,7 @@ onUnmounted(() => {
       <button
         @click.stop="handleMaximize"
         class="mac-traffic-light bg-[#28c840]"
-        :title="isMaximized ? '还原' : '全屏'"
+        :title="isWindowExpanded ? '还原' : '全屏'"
       >
         <span class="h-1.5 w-1.5 rounded-[1px] border border-current opacity-0 transition-opacity group-hover/window-controls:opacity-60"></span>
       </button>
@@ -111,9 +108,9 @@ onUnmounted(() => {
       <button
         @click.stop="handleMaximize"
         class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded transition-colors cursor-pointer"
-        :title="isMaximized ? '还原' : '最大化'"
+        :title="isWindowExpanded ? '还原' : '全屏'"
       >
-        <Minimize2 v-if="isMaximized" :size="14" />
+        <Minimize2 v-if="isWindowExpanded" :size="14" />
         <Square v-else :size="12" />
       </button>
       <button @click.stop="handleClose" class="p-1.5 text-slate-500 hover:text-white hover:bg-red-500 rounded transition-colors cursor-pointer">

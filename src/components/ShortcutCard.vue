@@ -55,16 +55,16 @@ const mainCardStyle = computed(() => {
   const transparent = store.settings.transparentWindow;
   if (isDarkTheme.value) {
     return {
-      backgroundColor: transparent ? 'rgba(5, 9, 18, 0.78)' : 'rgba(7, 10, 18, 0.96)',
+      backgroundColor: transparent ? 'rgba(5, 9, 18, 0.78)' : 'rgba(7, 10, 18, 0.92)',
       borderColor: props.selected ? `color-mix(in srgb, ${color} 100%, transparent)` : `color-mix(in srgb, ${color} 16%, rgba(148, 163, 184, 0.22))`,
     };
   }
 
   return {
     backgroundColor: transparent
-      ? `color-mix(in srgb, ${color} 5%, rgba(248, 250, 252, 0.72))`
-      : `color-mix(in srgb, ${color} 5%, rgba(248, 250, 252, 0.96))`,
-    borderColor: props.selected ? `color-mix(in srgb, ${color} 82%, transparent)` : `color-mix(in srgb, ${color} 24%, rgba(203, 213, 225, 0.82))`,
+      ? `color-mix(in srgb, ${color} 5%, rgba(255, 255, 255, 0.78))`
+      : `color-mix(in srgb, ${color} 4%, rgba(255, 255, 255, 0.92))`,
+    borderColor: props.selected ? `color-mix(in srgb, ${color} 82%, transparent)` : `color-mix(in srgb, ${color} 15%, rgba(148, 163, 184, 0.36))`,
   };
 });
 
@@ -79,10 +79,10 @@ const cardShadow = computed(() => {
       ? `0 10px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255,255,255,0.035), inset 0 1px 0 rgba(255, 255, 255, 0.16)`
       : `0 10px 22px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(255,255,255,0.82), inset 0 1px 0 rgba(255, 255, 255, 0.92)`;
   }
-  if (props.selected) return `0 8px 30px ${color}30`;
+  if (props.selected) return `0 12px 30px ${color}24`;
   return isDarkTheme.value
-    ? '0 18px 42px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255,255,255,0.055)'
-    : '0 16px 34px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255,255,255,0.92) inset';
+    ? '0 16px 36px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255,255,255,0.055)'
+    : '0 12px 30px rgba(15, 23, 42, 0.065), 0 1px 0 rgba(255,255,255,0.96) inset';
 });
 
 const workCardUi = computed(() => {
@@ -151,8 +151,8 @@ onUnmounted(() => {
       'ring-2 ring-emerald-400/60': feedbackStatus === 'success' && !workMode,
       'ring-2 ring-red-400/60': feedbackStatus === 'error' && !workMode,
       'work-card-enter rounded-xl cursor-pointer backdrop-blur-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]': workMode,
-      'main-action-card rounded-xl cursor-grab active:cursor-grabbing hover:-translate-y-0.5': !batchMode && !workMode,
-      'cursor-pointer hover:border-blue-500': batchMode,
+      'main-action-card rounded-xl cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:shadow-[0_22px_44px_rgba(15,23,42,0.13)] dark:hover:shadow-[0_22px_48px_rgba(0,0,0,0.44)]': !batchMode && !workMode,
+      'cursor-pointer hover:border-slate-500 dark:hover:border-slate-300': batchMode,
       'no-drag': workMode, // 在工作模式下禁用拖拽
       'backdrop-blur-xl': store.settings.transparentWindow && !workMode
     }"
@@ -166,9 +166,14 @@ onUnmounted(() => {
   >
     <!-- 背景渐变发光效果 (工作模式下弱化) -->
     <div 
-      class="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[50px] transition-opacity"
-      :class="workMode ? 'opacity-0' : 'opacity-10 dark:opacity-14 group-hover:opacity-20 dark:group-hover:opacity-28'"
-      :style="{ backgroundColor: shortcut.color }"
+      class="absolute left-0 top-0 h-1 w-full transition-opacity"
+      :class="workMode ? 'opacity-0' : 'opacity-55 dark:opacity-45 group-hover:opacity-90'"
+      :style="{ background: `linear-gradient(90deg, ${shortcut.color}, transparent 72%)` }"
+    ></div>
+    <div
+      v-if="!workMode"
+      class="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.11]"
+      :style="{ backgroundImage: `linear-gradient(135deg, ${shortcut.color} 0 1px, transparent 1px)`, backgroundSize: '12px 12px' }"
     ></div>
     <div
       v-if="workMode"
@@ -219,16 +224,16 @@ onUnmounted(() => {
 
     <template v-if="!workMode">
       <div
-        class="pointer-events-none absolute inset-0 opacity-60"
-        :style="{ background: `radial-gradient(circle at 18% 0%, color-mix(in srgb, ${shortcut.color} 16%, transparent), transparent 42%)` }"
+        class="pointer-events-none absolute inset-0 opacity-80"
+        :style="{ background: `linear-gradient(135deg, color-mix(in srgb, ${shortcut.color} 12%, transparent), transparent 34%), radial-gradient(circle at 88% 6%, color-mix(in srgb, ${shortcut.color} 16%, transparent), transparent 30%)` }"
       ></div>
       <div class="relative z-10 flex h-full flex-col p-4">
         <div class="flex items-start gap-3">
           <div
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-sm"
             :style="{
-              backgroundColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 18%, rgba(2, 6, 23, 0.9))` : `color-mix(in srgb, ${shortcut.color} 13%, #f1f5f9)`,
-              borderColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 24%, rgba(148, 163, 184, 0.2))` : `color-mix(in srgb, ${shortcut.color} 34%, rgba(203, 213, 225, 0.78))`,
+              backgroundColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 16%, rgba(2, 6, 23, 0.9))` : `color-mix(in srgb, ${shortcut.color} 9%, #f8fafc)`,
+              borderColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 24%, rgba(148, 163, 184, 0.2))` : `color-mix(in srgb, ${shortcut.color} 26%, rgba(203, 213, 225, 0.78))`,
               color: readableShortcutColor
             }"
           >
@@ -242,21 +247,23 @@ onUnmounted(() => {
                 :class="shortcut.enabled ? '' : 'opacity-40 grayscale'"
                 :style="{ color: shortcut.enabled ? shortcut.color : undefined, backgroundColor: shortcut.enabled ? shortcut.color : '#94a3b8' }"
               ></span>
-              <span class="rounded-md px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-white/[0.055] dark:text-slate-300"
+              <span class="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-white/[0.055] dark:text-slate-300"
                     :style="!isDarkTheme ? { backgroundColor: `color-mix(in srgb, ${shortcut.color} 10%, rgba(248, 250, 252, 0.95))` } : undefined">
                 {{ shortcut.enabled ? '已启用' : '已停用' }}
               </span>
             </div>
-            <h3 class="mt-2 truncate text-lg font-bold leading-tight text-slate-900 dark:text-slate-100">
+            <h3 class="mt-2 truncate text-[18px] font-black leading-tight text-slate-950 dark:text-slate-100">
               {{ shortcut.name }}
             </h3>
           </div>
 
           <button
             @click.stop="$emit('trigger', shortcut)"
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-[color:var(--light-panel)] text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[color:var(--light-panel-hover)] hover:text-slate-950 active:translate-y-0 active:scale-95 dark:bg-white/[0.055] dark:text-slate-300 dark:hover:bg-white/[0.09] dark:hover:text-white"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-slate-950 shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 dark:text-slate-950"
             :style="{
-              borderColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 18%, rgba(148, 163, 184, 0.24))` : `color-mix(in srgb, ${shortcut.color} 18%, rgba(51, 65, 85, 0.8))`
+              background: `linear-gradient(135deg, color-mix(in srgb, ${shortcut.color} 92%, white), color-mix(in srgb, ${shortcut.color} 58%, white))`,
+              borderColor: `color-mix(in srgb, ${shortcut.color} 42%, rgba(255,255,255,0.5))`,
+              boxShadow: `0 12px 24px ${shortcut.color}22`
             }"
             title="立即触发"
           >
@@ -265,24 +272,24 @@ onUnmounted(() => {
 
           <button
             @click.stop="$emit('edit', shortcut)"
-            class="flex h-10 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-800 active:scale-95 dark:hover:bg-white/[0.075] dark:hover:text-white"
+            class="flex h-10 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-900/5 hover:text-slate-800 active:scale-95 dark:hover:bg-white/[0.075] dark:hover:text-white"
             title="编辑动作"
           >
             <Edit2 :size="16" />
           </button>
           <button
             @click.stop="$emit('delete', shortcut.id)"
-            class="flex h-10 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-95 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+            class="flex h-10 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-600 active:scale-95 dark:hover:bg-red-500/10 dark:hover:text-red-300"
             title="删除动作"
           >
             <Trash2 :size="16" />
           </button>
         </div>
 
-        <div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-200/80 pt-3 dark:border-white/10">
+        <div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3 dark:border-white/10">
           <div class="min-w-0">
             <span
-              class="inline-flex max-w-full items-center rounded-md border px-2 py-1 font-mono text-[11px] font-semibold"
+              class="inline-flex max-w-full items-center rounded-lg border px-2 py-1 font-mono text-[11px] font-semibold"
               :style="{
                 backgroundColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 12%, rgba(2, 6, 23, 0.82))` : `color-mix(in srgb, ${shortcut.color} 9%, rgba(248, 250, 252, 0.95))`,
                 borderColor: isDarkTheme ? `color-mix(in srgb, ${shortcut.color} 22%, rgba(148, 163, 184, 0.2))` : `color-mix(in srgb, ${shortcut.color} 28%, rgba(203, 213, 225, 0.9))`,
@@ -294,7 +301,7 @@ onUnmounted(() => {
             </span>
           </div>
           <div
-            class="relative h-7 w-12 shrink-0 cursor-pointer rounded-full border p-0.5 transition-all"
+            class="relative h-7 w-12 shrink-0 cursor-pointer rounded-full border p-0.5 transition-all shadow-inner"
             :class="!shortcut.enabled ? 'bg-slate-200 dark:bg-slate-800' : ''"
             :style="{
               backgroundColor: shortcut.enabled ? shortcut.color : undefined,
